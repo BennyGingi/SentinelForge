@@ -1,0 +1,7 @@
+{
+    "rule_name": "Mimikatz Execution",
+    "process_name": "powershell.exe",
+    "command_line_contains": "mimikatz",
+    "severity": "Critical",
+    "mitre": "T1003"
+}
