@@ -1,0 +1,8 @@
+{
+    "hostname": "WORKSTATION-07",
+    "username": "CORP\\jsmith",
+    "process_name": "powershell.exe",
+    "parent_process": "explorer.exe",
+    "command_line": "powershell.exe -enc SGVsbG8= -NoProfile -ExecutionPolicy Bypass -Command \"Get-Process\"",
+    "pid": 4821
+}

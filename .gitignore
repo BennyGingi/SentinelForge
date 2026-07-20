@@ -1,0 +1,14 @@
+build/
+**/build/
+.vs/
+.vscode/ipch/
+*.obj
+*.pdb
+*.ilk
+*.exe
+*.vcxproj*
+*.sln
+*.slnx
+CMakeCache.txt
+CMakeFiles/
+_deps/

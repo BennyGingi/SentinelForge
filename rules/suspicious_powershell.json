@@ -1,0 +1,7 @@
+{
+    "rule_name": "Suspicious PowerShell",
+    "process_name": "powershell.exe",
+    "command_line_contains": "-enc",
+    "severity": "High",
+    "mitre": "T1059.001"
+}
