@@ -25,6 +25,8 @@ add_executable(collector
     src/RuleParser.cpp
     src/RuleLoader.cpp
     src/DetectionEngine.cpp
+    src/DetectionReport.cpp
+    src/ReportPrinter.cpp
 )
 
 target_include_directories(collector PRIVATE include)

@@ -7,14 +7,15 @@
 #include "Event.h"
 #include "EventParser.h"
 #include "Logger.h"
+#include "ReportPrinter.h"
 #include "Rule.h"
 #include "RuleLoader.h"
 
 namespace sentinelforge {
 
 // Owns the collector's startup sequence and top-level lifecycle.
-// Delegates rule matching entirely to DetectionEngine and rule discovery
-// entirely to RuleLoader; Application only loads inputs and logs the outcome.
+// Coordinates the workflow only: loading, detection, and report rendering
+// are each delegated to their own class.
 class Application {
 public:
     Application();
@@ -31,6 +32,7 @@ private:
     EventParser eventParser_;
     RuleLoader ruleLoader_;
     DetectionEngine detectionEngine_;
+    ReportPrinter reportPrinter_;
 };
 
 }  // namespace sentinelforge
