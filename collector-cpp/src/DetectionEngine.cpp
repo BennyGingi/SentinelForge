@@ -24,7 +24,17 @@ bool EqualsCaseInsensitive(const std::string& lhs, const std::string& rhs) {
 
 }  // namespace
 
-DetectionResult DetectionEngine::Evaluate(const Event& event, const Rule& rule) const {
+std::vector<DetectionResult> DetectionEngine::Evaluate(const Event& event,
+                                                        const std::vector<Rule>& rules) const {
+    std::vector<DetectionResult> results;
+    results.reserve(rules.size());
+    for (const auto& rule : rules) {
+        results.push_back(EvaluateOne(event, rule));
+    }
+    return results;
+}
+
+DetectionResult DetectionEngine::EvaluateOne(const Event& event, const Rule& rule) const {
     const bool processMatches = EqualsCaseInsensitive(event.ProcessName(), rule.ProcessName());
     const bool commandLineMatches =
         ContainsCaseInsensitive(event.CommandLine(), rule.CommandLineContains());

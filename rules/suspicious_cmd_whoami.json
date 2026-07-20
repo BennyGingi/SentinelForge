@@ -1,0 +1,7 @@
+{
+    "rule_name": "Suspicious Whoami via cmd.exe",
+    "process_name": "cmd.exe",
+    "command_line_contains": "whoami",
+    "severity": "Medium",
+    "mitre": "T1033"
+}

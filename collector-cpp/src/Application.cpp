@@ -14,12 +14,12 @@ int Application::Run() {
         return 0;
     }
 
-    const std::optional<Rule> rule = LoadRule();
-    if (!rule.has_value()) {
+    const std::optional<std::vector<Rule>> rules = LoadRules();
+    if (!rules.has_value()) {
         return 0;
     }
 
-    RunDetection(*event, *rule);
+    RunDetection(*event, *rules);
     return 0;
 }
 
@@ -45,27 +45,37 @@ std::optional<Event> Application::LoadEvent() const {
     }
 }
 
-std::optional<Rule> Application::LoadRule() const {
+std::optional<std::vector<Rule>> Application::LoadRules() const {
     try {
-        return ruleParser_.ParseFile(SAMPLE_RULE_PATH);
+        return ruleLoader_.LoadDirectory(RULES_DIR);
     } catch (const std::exception& e) {
-        logger_.Error(std::string("Failed to load detection rule: ") + e.what());
+        logger_.Error(std::string("Failed to load detection rules: ") + e.what());
         return std::nullopt;
     }
 }
 
-void Application::RunDetection(const Event& event, const Rule& rule) const {
-    const DetectionResult result = detectionEngine_.Evaluate(event, rule);
+void Application::RunDetection(const Event& event, const std::vector<Rule>& rules) const {
+    const std::vector<DetectionResult> results = detectionEngine_.Evaluate(event, rules);
 
-    if (result.Matched()) {
-        logger_.Warning("Rule matched");
-        logger_.Warning("  Rule: " + result.RuleName());
-        logger_.Warning("  Severity: " + result.Severity());
-        logger_.Warning("  MITRE: " + result.Mitre());
-        logger_.Warning("  Reason: " + result.Reason());
-    } else {
-        logger_.Info("No detection matched.");
+    std::size_t matches = 0;
+    for (const auto& result : results) {
+        if (result.Matched()) {
+            ++matches;
+            logger_.Warning("Rule matched");
+            logger_.Warning("  Rule: " + result.RuleName());
+            logger_.Warning("  Severity: " + result.Severity());
+            logger_.Warning("  MITRE: " + result.Mitre());
+            logger_.Warning("  Reason: " + result.Reason());
+        }
     }
+
+    if (matches == 0) {
+        logger_.Info("No detections matched.");
+    }
+
+    logger_.Info("Rules loaded: " + std::to_string(rules.size()));
+    logger_.Info("Rules evaluated: " + std::to_string(results.size()));
+    logger_.Info("Matches: " + std::to_string(matches));
 }
 
 }  // namespace sentinelforge
