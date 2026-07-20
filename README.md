@@ -13,3 +13,23 @@ Given attack telemetry and detection rules, SentinelForge validates whether dete
 - Docker
 - Kubernetes
 - Git
+
+## Development
+
+### Build
+
+```
+.\scripts\build.ps1
+```
+
+### Run
+
+```
+.\scripts\run.ps1
+```
+
+### Test
+
+```
+.\scripts\test.ps1
+```
