@@ -1,10 +1,12 @@
-# Smoke test: builds, runs, and verifies expected collector output.
+# Builds the project and runs the GoogleTest unit suite via CTest.
+# Reports PASS only if every unit test succeeds.
 # Usage (from repository root): .\scripts\test.ps1
 
 . "$PSScriptRoot\common.ps1"
 
+$repoRoot = Get-RepoRoot
 $buildScript = Join-Path $PSScriptRoot "build.ps1"
-$runScript = Join-Path $PSScriptRoot "run.ps1"
+$buildDir = Join-Path $repoRoot "collector-cpp\build"
 
 & $buildScript
 if ($LASTEXITCODE -ne 0) {
@@ -13,35 +15,14 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-$output = & $runScript | Out-String
-$runExitCode = $LASTEXITCODE
-if ($runExitCode -ne 0) {
+Write-Host "Running unit tests (ctest)..."
+ctest --test-dir $buildDir -C Debug --output-on-failure
+$testExitCode = $LASTEXITCODE
+if ($testExitCode -ne 0) {
     Write-Host "FAIL"
-    Write-Error "run.ps1 failed with exit code $runExitCode."
+    Write-Error "Unit tests failed with exit code $testExitCode."
     exit 1
 }
 
-$requiredStrings = @(
-    "SentinelForge Collector started",
-    "Rules loaded:",
-    "Rules evaluated:",
-    "Matches:"
-)
-
-$missingStrings = @()
-foreach ($text in $requiredStrings) {
-    if ($output -notmatch [regex]::Escape($text)) {
-        $missingStrings += $text
-    }
-}
-
-if ($missingStrings.Count -eq 0) {
-    Write-Host "PASS"
-    exit 0
-}
-
-Write-Host "FAIL"
-foreach ($text in $missingStrings) {
-    Write-Error "Missing expected output: '$text'"
-}
-exit 1
+Write-Host "PASS"
+exit 0
