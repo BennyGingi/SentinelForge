@@ -1,0 +1,8 @@
+{
+    "rules_directory": "rules",
+    "sample_event_file": "sample-logs/process_create.json",
+    "logging_level": "INFO",
+    "output_directory": "output",
+    "api_port": 8080,
+    "dashboard_enabled": false
+}

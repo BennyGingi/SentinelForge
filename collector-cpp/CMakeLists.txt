@@ -18,11 +18,13 @@ FetchContent_MakeAvailable(nlohmann_json)
 add_executable(collector
     src/main.cpp
     src/Application.cpp
+    src/Configuration.cpp
     src/Logger.cpp
     src/Event.cpp
     src/EventParser.cpp
     src/Rule.cpp
     src/RuleParser.cpp
+    src/RuleValidator.cpp
     src/RuleLoader.cpp
     src/DetectionEngine.cpp
     src/DetectionReport.cpp
@@ -32,14 +34,16 @@ add_executable(collector
 target_include_directories(collector PRIVATE include)
 target_link_libraries(collector PRIVATE nlohmann_json::nlohmann_json)
 
-# Absolute paths to the sample telemetry file and rules directory, resolved
-# at configure time so the collector can locate them regardless of the
-# working directory it is run from. This is a temporary convenience for
-# local development; a future issue will replace it with a proper
-# command-line/config input path.
+# The collector reads all runtime settings from the configuration subsystem
+# rather than from hardcoded paths. Only the location of the config file, and
+# the fallback defaults used when it is absent, are baked in here. They are
+# resolved to absolute paths at configure time so the collector behaves the
+# same regardless of the working directory it is launched from.
 target_compile_definitions(collector PRIVATE
-    SAMPLE_LOG_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../sample-logs/process_create.json"
-    RULES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../rules"
+    CONFIG_FILE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../config/sentinelforge.json"
+    DEFAULT_RULES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../rules"
+    DEFAULT_SAMPLE_EVENT_FILE="${CMAKE_CURRENT_SOURCE_DIR}/../sample-logs/process_create.json"
+    DEFAULT_OUTPUT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../output"
 )
 
 if (MSVC)
