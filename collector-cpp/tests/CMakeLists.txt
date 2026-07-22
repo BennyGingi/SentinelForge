@@ -16,6 +16,7 @@ add_executable(collector_tests
     RuleValidatorTests.cpp
     ConfigurationTests.cpp
     DetectionEngineTests.cpp
+    LoggerTests.cpp
 )
 
 # Tests link the production logic library directly and drive the domain

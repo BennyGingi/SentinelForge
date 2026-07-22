@@ -21,6 +21,9 @@
 #ifndef DEFAULT_OUTPUT_DIR
 #define DEFAULT_OUTPUT_DIR "output"
 #endif
+#ifndef DEFAULT_LOG_PATH
+#define DEFAULT_LOG_PATH "logs/sentinelforge.log"
+#endif
 
 namespace sentinelforge {
 
@@ -28,7 +31,6 @@ namespace {
 
 constexpr std::uint16_t kDefaultApiPort = 8080;
 constexpr bool kDefaultDashboardEnabled = false;
-constexpr LogLevel kDefaultLoggingLevel = LogLevel::Info;
 
 std::string ToUpper(std::string value) {
     std::transform(value.begin(), value.end(), value.begin(),
@@ -38,12 +40,15 @@ std::string ToUpper(std::string value) {
 
 LogLevel ParseLogLevel(const std::string& raw) {
     const std::string upper = ToUpper(raw);
+    if (upper == "TRACE") return LogLevel::Trace;
     if (upper == "DEBUG") return LogLevel::Debug;
     if (upper == "INFO") return LogLevel::Info;
-    if (upper == "WARNING") return LogLevel::Warning;
+    if (upper == "WARN" || upper == "WARNING") return LogLevel::Warn;
     if (upper == "ERROR") return LogLevel::Error;
-    throw ConfigurationError("Invalid logging_level '" + raw +
-                             "' (expected DEBUG, INFO, WARNING, or ERROR)");
+    if (upper == "FATAL") return LogLevel::Fatal;
+    throw ConfigurationError(
+        "Invalid logging.level '" + raw +
+        "' (expected TRACE, DEBUG, INFO, WARN, ERROR, or FATAL)");
 }
 
 // A path setting must be a non-empty string when present. Relative values are
@@ -68,6 +73,50 @@ std::filesystem::path ResolvePathField(const nlohmann::json& json,
     return candidate.is_absolute() ? candidate : base / candidate;
 }
 
+LoggingSettings ParseLoggingSettings(const nlohmann::json& root,
+                                     const std::filesystem::path& base,
+                                     const LoggingSettings& defaults) {
+    LoggingSettings settings = defaults;
+    if (!root.contains("logging")) {
+        return settings;
+    }
+
+    const auto& logging = root.at("logging");
+    if (!logging.is_object()) {
+        throw ConfigurationError("Field 'logging' must be a JSON object");
+    }
+
+    if (logging.contains("level")) {
+        const auto& value = logging.at("level");
+        if (!value.is_string()) {
+            throw ConfigurationError("Field 'logging.level' must be a string");
+        }
+        settings.level = ParseLogLevel(value.get<std::string>());
+    }
+
+    if (logging.contains("console")) {
+        const auto& value = logging.at("console");
+        if (!value.is_boolean()) {
+            throw ConfigurationError("Field 'logging.console' must be a boolean");
+        }
+        settings.console = value.get<bool>();
+    }
+
+    if (logging.contains("file")) {
+        const auto& value = logging.at("file");
+        if (!value.is_boolean()) {
+            throw ConfigurationError("Field 'logging.file' must be a boolean");
+        }
+        settings.file = value.get<bool>();
+    }
+
+    if (logging.contains("path")) {
+        settings.path = ResolvePathField(logging, "path", base, defaults.path);
+    }
+
+    return settings;
+}
+
 }  // namespace
 
 ConfigurationError::ConfigurationError(const std::string& message)
@@ -75,28 +124,34 @@ ConfigurationError::ConfigurationError(const std::string& message)
 
 Configuration::Configuration(std::filesystem::path rulesDirectory,
                              std::filesystem::path sampleEventFile,
-                             LogLevel loggingLevel,
+                             LoggingSettings logging,
                              std::filesystem::path outputDirectory,
                              std::uint16_t apiPort,
                              bool dashboardEnabled)
     : rulesDirectory_(std::move(rulesDirectory)),
       sampleEventFile_(std::move(sampleEventFile)),
-      loggingLevel_(loggingLevel),
+      logging_(std::move(logging)),
       outputDirectory_(std::move(outputDirectory)),
       apiPort_(apiPort),
       dashboardEnabled_(dashboardEnabled) {}
 
 const std::filesystem::path& Configuration::RulesDirectory() const { return rulesDirectory_; }
 const std::filesystem::path& Configuration::SampleEventFile() const { return sampleEventFile_; }
-LogLevel Configuration::LoggingLevel() const { return loggingLevel_; }
+const LoggingSettings& Configuration::Logging() const { return logging_; }
 const std::filesystem::path& Configuration::OutputDirectory() const { return outputDirectory_; }
 std::uint16_t Configuration::ApiPort() const { return apiPort_; }
 bool Configuration::DashboardEnabled() const { return dashboardEnabled_; }
 
 Configuration Configuration::Defaults() {
+    LoggingSettings logging;
+    logging.level = LogLevel::Info;
+    logging.console = true;
+    logging.file = false;
+    logging.path = std::filesystem::path(DEFAULT_LOG_PATH);
+
     return Configuration(std::filesystem::path(DEFAULT_RULES_DIR),
                          std::filesystem::path(DEFAULT_SAMPLE_EVENT_FILE),
-                         kDefaultLoggingLevel,
+                         std::move(logging),
                          std::filesystem::path(DEFAULT_OUTPUT_DIR),
                          kDefaultApiPort,
                          kDefaultDashboardEnabled);
@@ -104,8 +159,9 @@ Configuration Configuration::Defaults() {
 
 Configuration Configuration::LoadFromFile(const std::filesystem::path& path, const Logger& logger) {
     if (!std::filesystem::exists(path)) {
-        logger.Warning("Configuration file not found at '" + path.string() +
-                       "'; using built-in defaults");
+        logger.Warn("Configuration",
+                    "Configuration file not found at '" + path.string() +
+                        "'; using built-in defaults");
         return Defaults();
     }
 
@@ -136,14 +192,7 @@ Configuration Configuration::LoadFromFile(const std::filesystem::path& path, con
     std::filesystem::path outputDir =
         ResolvePathField(json, "output_directory", base, defaults.OutputDirectory());
 
-    LogLevel level = defaults.LoggingLevel();
-    if (json.contains("logging_level")) {
-        const auto& value = json.at("logging_level");
-        if (!value.is_string()) {
-            throw ConfigurationError("Field 'logging_level' must be a string");
-        }
-        level = ParseLogLevel(value.get<std::string>());
-    }
+    LoggingSettings logging = ParseLoggingSettings(json, base, defaults.Logging());
 
     std::uint16_t apiPort = defaults.ApiPort();
     if (json.contains("api_port")) {
@@ -167,7 +216,7 @@ Configuration Configuration::LoadFromFile(const std::filesystem::path& path, con
         dashboard = value.get<bool>();
     }
 
-    return Configuration(std::move(rulesDir), std::move(sampleEvent), level,
+    return Configuration(std::move(rulesDir), std::move(sampleEvent), std::move(logging),
                          std::move(outputDir), apiPort, dashboard);
 }
 

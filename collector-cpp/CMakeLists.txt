@@ -47,6 +47,7 @@ target_compile_definitions(collector_core PRIVATE
     DEFAULT_RULES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../rules"
     DEFAULT_SAMPLE_EVENT_FILE="${CMAKE_CURRENT_SOURCE_DIR}/../sample-logs/process_create.json"
     DEFAULT_OUTPUT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../output"
+    DEFAULT_LOG_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../logs/sentinelforge.log"
 )
 
 add_executable(collector src/main.cpp)

@@ -28,7 +28,9 @@ int Application::Run() {
         return 1;
     }
 
-    logger_.SetMinLevel(config->LoggingLevel());
+    // Apply configured destinations and level. Logger reads LoggingSettings
+    // only — it never depends on Configuration itself.
+    logger_.Configure(config->Logging());
     LogConfiguration(*config);
 
     const std::optional<Event> event = LoadEvent(config->SampleEventFile());
@@ -47,33 +49,59 @@ int Application::Run() {
 }
 
 void Application::PrintBanner() const {
-    logger_.Info("SentinelForge Collector started");
+    logger_.Info("Application", "SentinelForge Collector started");
 }
 
 std::optional<Configuration> Application::LoadConfiguration() const {
     try {
         return Configuration::LoadFromFile(CONFIG_FILE_PATH, logger_);
     } catch (const ConfigurationError& e) {
-        logger_.Error(std::string("Configuration error: ") + e.what());
+        logger_.Error("Configuration", std::string("Configuration error: ") + e.what());
         return std::nullopt;
     }
 }
 
 void Application::LogConfiguration(const Configuration& config) const {
-    logger_.Debug("Configuration loaded:");
-    logger_.Debug("  rules_directory   = " + config.RulesDirectory().string());
-    logger_.Debug("  sample_event_file = " + config.SampleEventFile().string());
-    logger_.Debug("  output_directory  = " + config.OutputDirectory().string());
-    logger_.Debug("  api_port          = " + std::to_string(config.ApiPort()));
-    logger_.Debug(std::string("  dashboard_enabled = ") +
-                  (config.DashboardEnabled() ? "true" : "false"));
+    if (!logger_.ShouldLog(LogLevel::Debug)) {
+        return;
+    }
+
+    auto levelName = [](LogLevel level) -> const char* {
+        switch (level) {
+            case LogLevel::Trace:
+                return "TRACE";
+            case LogLevel::Debug:
+                return "DEBUG";
+            case LogLevel::Info:
+                return "INFO";
+            case LogLevel::Warn:
+                return "WARN";
+            case LogLevel::Error:
+                return "ERROR";
+            case LogLevel::Fatal:
+                return "FATAL";
+        }
+        return "INFO";
+    };
+
+    logger_.Debug("Configuration", "Configuration loaded:");
+    logger_.Debug("Configuration", "  rules_directory   = " + config.RulesDirectory().string());
+    logger_.Debug("Configuration",
+                  "  sample_event_file = " + config.SampleEventFile().string());
+    logger_.Debug("Configuration", "  output_directory  = " + config.OutputDirectory().string());
+    logger_.Debug("Configuration", "  api_port          = " + std::to_string(config.ApiPort()));
+    logger_.Debug("Configuration",
+                  std::string("  dashboard_enabled = ") +
+                      (config.DashboardEnabled() ? "true" : "false"));
+    logger_.Debug("Configuration",
+                  std::string("  logging.level     = ") + levelName(config.Logging().level));
 }
 
 std::optional<Event> Application::LoadEvent(const std::filesystem::path& sampleEventFile) const {
     try {
         return eventParser_.ParseFile(sampleEventFile);
     } catch (const std::exception& e) {
-        logger_.Error(std::string("Failed to load telemetry event: ") + e.what());
+        logger_.Error("Application", std::string("Failed to load telemetry event: ") + e.what());
         return std::nullopt;
     }
 }
@@ -83,21 +111,21 @@ std::optional<RuleLoadResult> Application::LoadRules(
     try {
         return ruleLoader_.LoadDirectory(rulesDirectory);
     } catch (const std::exception& e) {
-        logger_.Error(std::string("Failed to load detection rules: ") + e.what());
+        logger_.Error("RuleLoader", std::string("Failed to load detection rules: ") + e.what());
         return std::nullopt;
     }
 }
 
 void Application::LogRuleLoadResult(const RuleLoadResult& result) const {
-    logger_.Info("Rules discovered: " + std::to_string(result.Discovered()));
-    logger_.Info("Rules accepted: " + std::to_string(result.Accepted().size()));
-    logger_.Info("Rules rejected: " + std::to_string(result.Rejected().size()));
+    logger_.Info("RuleLoader", "Rules discovered: " + std::to_string(result.Discovered()));
+    logger_.Info("RuleLoader", "Rules accepted: " + std::to_string(result.Accepted().size()));
+    logger_.Info("RuleLoader", "Rules rejected: " + std::to_string(result.Rejected().size()));
 
     for (const auto& rejection : result.Rejected()) {
-        logger_.Error("ERROR:");
-        logger_.Error("Rule \"" + rejection.Identifier() + "\"");
+        logger_.Error("RuleValidator", "ERROR:");
+        logger_.Error("RuleValidator", "Rule \"" + rejection.Identifier() + "\"");
         for (const auto& message : rejection.Errors()) {
-            logger_.Error(message);
+            logger_.Error("RuleValidator", message);
         }
     }
 }

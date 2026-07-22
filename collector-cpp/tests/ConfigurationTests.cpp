@@ -34,17 +34,20 @@ protected:
         return path;
     }
 
-    // Error-level logger: LoadFromFile requires a Logger, but these tests
-    // assert only on returned Configuration values, never on log output. The
-    // high threshold keeps the "missing file" warning out of test output.
-    Logger quietLogger_{LogLevel::Error};
+    // Error-level, console-only logger: LoadFromFile requires a Logger, but
+    // these tests assert only on returned Configuration values. The high
+    // threshold keeps the "missing file" warning out of test output.
+    Logger quietLogger_{LoggingSettings{LogLevel::Error, true, false, {}}};
     std::filesystem::path tempDir_;
 };
 
 TEST_F(ConfigurationTest, DefaultConfigurationCreation) {
     const Configuration config = Configuration::Defaults();
 
-    EXPECT_EQ(config.LoggingLevel(), LogLevel::Info) << "Default logging level should be INFO";
+    EXPECT_EQ(config.Logging().level, LogLevel::Info) << "Default logging level should be INFO";
+    EXPECT_TRUE(config.Logging().console) << "Console logging should be enabled by default";
+    EXPECT_FALSE(config.Logging().file) << "File logging should be disabled by default";
+    EXPECT_FALSE(config.Logging().path.empty()) << "Default log path should be set";
     EXPECT_EQ(config.ApiPort(), static_cast<std::uint16_t>(8080)) << "Default API port should be 8080";
     EXPECT_FALSE(config.DashboardEnabled()) << "Dashboard should be disabled by default";
     EXPECT_FALSE(config.RulesDirectory().empty()) << "Default rules directory should be set";
@@ -59,8 +62,12 @@ TEST_F(ConfigurationTest, MissingConfigurationFileFallsBackToDefaults) {
     const Configuration config = Configuration::LoadFromFile(missing, quietLogger_);
     const Configuration defaults = Configuration::Defaults();
 
-    EXPECT_EQ(config.LoggingLevel(), defaults.LoggingLevel())
+    EXPECT_EQ(config.Logging().level, defaults.Logging().level)
         << "A missing file should yield the default logging level";
+    EXPECT_EQ(config.Logging().console, defaults.Logging().console)
+        << "A missing file should yield the default console setting";
+    EXPECT_EQ(config.Logging().file, defaults.Logging().file)
+        << "A missing file should yield the default file setting";
     EXPECT_EQ(config.ApiPort(), defaults.ApiPort())
         << "A missing file should yield the default API port";
     EXPECT_EQ(config.DashboardEnabled(), defaults.DashboardEnabled())
@@ -70,7 +77,8 @@ TEST_F(ConfigurationTest, MissingConfigurationFileFallsBackToDefaults) {
 }
 
 TEST_F(ConfigurationTest, InvalidLoggingLevelRejected) {
-    const std::filesystem::path path = WriteConfig(R"({ "logging_level": "LOUD" })");
+    const std::filesystem::path path =
+        WriteConfig(R"({ "logging": { "level": "LOUD" } })");
 
     EXPECT_THROW(Configuration::LoadFromFile(path, quietLogger_), ConfigurationError)
         << "An unknown logging level must be rejected";
@@ -87,19 +95,28 @@ TEST_F(ConfigurationTest, ImmutableGettersReturnExpectedValues) {
     const std::filesystem::path rulesDir = tempDir_ / "custom-rules";
     const std::filesystem::path sampleFile = tempDir_ / "custom-event.json";
     const std::filesystem::path outputDir = tempDir_ / "custom-output";
+    const std::filesystem::path logPath = tempDir_ / "custom.log";
 
     const std::string json = std::string("{\n") +
         "  \"rules_directory\": \"" + rulesDir.generic_string() + "\",\n" +
         "  \"sample_event_file\": \"" + sampleFile.generic_string() + "\",\n" +
         "  \"output_directory\": \"" + outputDir.generic_string() + "\",\n" +
-        "  \"logging_level\": \"WARNING\",\n" +
         "  \"api_port\": 1234,\n" +
-        "  \"dashboard_enabled\": true\n" +
+        "  \"dashboard_enabled\": true,\n" +
+        "  \"logging\": {\n" +
+        "    \"level\": \"WARN\",\n" +
+        "    \"console\": false,\n" +
+        "    \"file\": true,\n" +
+        "    \"path\": \"" + logPath.generic_string() + "\"\n" +
+        "  }\n" +
         "}\n";
 
     const Configuration config = Configuration::LoadFromFile(WriteConfig(json), quietLogger_);
 
-    EXPECT_EQ(config.LoggingLevel(), LogLevel::Warning) << "logging_level should be read as WARNING";
+    EXPECT_EQ(config.Logging().level, LogLevel::Warn) << "logging.level should be read as WARN";
+    EXPECT_FALSE(config.Logging().console) << "logging.console should be read as false";
+    EXPECT_TRUE(config.Logging().file) << "logging.file should be read as true";
+    EXPECT_EQ(config.Logging().path, logPath) << "logging.path should echo the file value";
     EXPECT_EQ(config.ApiPort(), static_cast<std::uint16_t>(1234)) << "api_port should be read as 1234";
     EXPECT_TRUE(config.DashboardEnabled()) << "dashboard_enabled should be read as true";
     EXPECT_EQ(config.RulesDirectory(), rulesDir) << "rules_directory getter should echo the file value";
