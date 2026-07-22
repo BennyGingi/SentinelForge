@@ -48,7 +48,7 @@ public:
 
     const std::filesystem::path& RulesDirectory() const;
     const std::filesystem::path& SampleEventFile() const;
-    LogLevel LoggingLevel() const;
+    const LoggingSettings& Logging() const;
     const std::filesystem::path& OutputDirectory() const;
     std::uint16_t ApiPort() const;
     bool DashboardEnabled() const;
@@ -56,14 +56,14 @@ public:
 private:
     Configuration(std::filesystem::path rulesDirectory,
                   std::filesystem::path sampleEventFile,
-                  LogLevel loggingLevel,
+                  LoggingSettings logging,
                   std::filesystem::path outputDirectory,
                   std::uint16_t apiPort,
                   bool dashboardEnabled);
 
     std::filesystem::path rulesDirectory_;
     std::filesystem::path sampleEventFile_;
-    LogLevel loggingLevel_;
+    LoggingSettings logging_;
     std::filesystem::path outputDirectory_;
     std::uint16_t apiPort_;
     bool dashboardEnabled_;
