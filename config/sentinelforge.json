@@ -9,5 +9,9 @@
         "console": true,
         "file": false,
         "path": "logs/sentinelforge.log"
+    },
+    "json_export": {
+        "enabled": true,
+        "output_file": "detections.json"
     }
 }

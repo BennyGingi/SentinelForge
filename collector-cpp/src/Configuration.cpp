@@ -24,6 +24,9 @@
 #ifndef DEFAULT_LOG_PATH
 #define DEFAULT_LOG_PATH "logs/sentinelforge.log"
 #endif
+#ifndef DEFAULT_JSON_EXPORT_FILE
+#define DEFAULT_JSON_EXPORT_FILE "detections.json"
+#endif
 
 namespace sentinelforge {
 
@@ -117,6 +120,35 @@ LoggingSettings ParseLoggingSettings(const nlohmann::json& root,
     return settings;
 }
 
+JsonExportSettings ParseJsonExportSettings(const nlohmann::json& root,
+                                           const std::filesystem::path& base,
+                                           const JsonExportSettings& defaults) {
+    JsonExportSettings settings = defaults;
+    if (!root.contains("json_export")) {
+        return settings;
+    }
+
+    const auto& section = root.at("json_export");
+    if (!section.is_object()) {
+        throw ConfigurationError("Field 'json_export' must be a JSON object");
+    }
+
+    if (section.contains("enabled")) {
+        const auto& value = section.at("enabled");
+        if (!value.is_boolean()) {
+            throw ConfigurationError("Field 'json_export.enabled' must be a boolean");
+        }
+        settings.enabled = value.get<bool>();
+    }
+
+    if (section.contains("output_file")) {
+        settings.outputFile =
+            ResolvePathField(section, "output_file", base, defaults.outputFile);
+    }
+
+    return settings;
+}
+
 }  // namespace
 
 ConfigurationError::ConfigurationError(const std::string& message)
@@ -125,12 +157,14 @@ ConfigurationError::ConfigurationError(const std::string& message)
 Configuration::Configuration(std::filesystem::path rulesDirectory,
                              std::filesystem::path sampleEventFile,
                              LoggingSettings logging,
+                             JsonExportSettings jsonExport,
                              std::filesystem::path outputDirectory,
                              std::uint16_t apiPort,
                              bool dashboardEnabled)
     : rulesDirectory_(std::move(rulesDirectory)),
       sampleEventFile_(std::move(sampleEventFile)),
       logging_(std::move(logging)),
+      jsonExport_(std::move(jsonExport)),
       outputDirectory_(std::move(outputDirectory)),
       apiPort_(apiPort),
       dashboardEnabled_(dashboardEnabled) {}
@@ -138,6 +172,7 @@ Configuration::Configuration(std::filesystem::path rulesDirectory,
 const std::filesystem::path& Configuration::RulesDirectory() const { return rulesDirectory_; }
 const std::filesystem::path& Configuration::SampleEventFile() const { return sampleEventFile_; }
 const LoggingSettings& Configuration::Logging() const { return logging_; }
+const JsonExportSettings& Configuration::JsonExport() const { return jsonExport_; }
 const std::filesystem::path& Configuration::OutputDirectory() const { return outputDirectory_; }
 std::uint16_t Configuration::ApiPort() const { return apiPort_; }
 bool Configuration::DashboardEnabled() const { return dashboardEnabled_; }
@@ -149,9 +184,14 @@ Configuration Configuration::Defaults() {
     logging.file = false;
     logging.path = std::filesystem::path(DEFAULT_LOG_PATH);
 
+    JsonExportSettings jsonExport;
+    jsonExport.enabled = true;
+    jsonExport.outputFile = std::filesystem::path(DEFAULT_JSON_EXPORT_FILE);
+
     return Configuration(std::filesystem::path(DEFAULT_RULES_DIR),
                          std::filesystem::path(DEFAULT_SAMPLE_EVENT_FILE),
                          std::move(logging),
+                         std::move(jsonExport),
                          std::filesystem::path(DEFAULT_OUTPUT_DIR),
                          kDefaultApiPort,
                          kDefaultDashboardEnabled);
@@ -193,6 +233,7 @@ Configuration Configuration::LoadFromFile(const std::filesystem::path& path, con
         ResolvePathField(json, "output_directory", base, defaults.OutputDirectory());
 
     LoggingSettings logging = ParseLoggingSettings(json, base, defaults.Logging());
+    JsonExportSettings jsonExport = ParseJsonExportSettings(json, base, defaults.JsonExport());
 
     std::uint16_t apiPort = defaults.ApiPort();
     if (json.contains("api_port")) {
@@ -217,7 +258,7 @@ Configuration Configuration::LoadFromFile(const std::filesystem::path& path, con
     }
 
     return Configuration(std::move(rulesDir), std::move(sampleEvent), std::move(logging),
-                         std::move(outputDir), apiPort, dashboard);
+                         std::move(jsonExport), std::move(outputDir), apiPort, dashboard);
 }
 
 }  // namespace sentinelforge

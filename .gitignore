@@ -1,6 +1,7 @@
 build/
 **/build/
 logs/
+detections.json
 .vs/
 .vscode/ipch/
 *.obj

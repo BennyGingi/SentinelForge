@@ -45,7 +45,7 @@ int Application::Run() {
                 exitCode = 0;
             } else {
                 LogRuleLoadResult(*loadResult);
-                RunDetection(*event, loadResult->Accepted());
+                RunDetection(*event, loadResult->Accepted(), config->JsonExport());
                 exitCode = 0;
             }
         }
@@ -107,6 +107,11 @@ void Application::LogConfiguration(const Configuration& config) const {
                       (config.DashboardEnabled() ? "true" : "false"));
     logger_.Debug("Configuration",
                   std::string("  logging.level     = ") + levelName(config.Logging().level));
+    logger_.Debug("Configuration",
+                  std::string("  json_export.enabled = ") +
+                      (config.JsonExport().enabled ? "true" : "false"));
+    logger_.Debug("Configuration",
+                  "  json_export.output_file = " + config.JsonExport().outputFile.string());
 }
 
 std::optional<Event> Application::LoadEvent(const std::filesystem::path& sampleEventFile) {
@@ -157,7 +162,9 @@ void Application::LogRuleLoadResult(const RuleLoadResult& result) const {
     }
 }
 
-void Application::RunDetection(const Event& event, const std::vector<Rule>& rules) {
+void Application::RunDetection(const Event& event,
+                               const std::vector<Rule>& rules,
+                               const JsonExportSettings& jsonExport) {
     profiler_.Start(ProfileStage::DetectionEngine);
     std::vector<DetectionResult> results = detectionEngine_.Evaluate(event, rules);
     profiler_.Stop(ProfileStage::DetectionEngine);
@@ -167,6 +174,7 @@ void Application::RunDetection(const Event& event, const std::vector<Rule>& rule
 
     profiler_.Start(ProfileStage::ReportGeneration);
     reportPrinter_.Print(report, logger_);
+    jsonExporter_.Export(report, jsonExport, logger_);
     profiler_.Stop(ProfileStage::ReportGeneration);
 }
 
