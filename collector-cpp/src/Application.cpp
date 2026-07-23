@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <string>
+#include <unordered_set>
 #include <utility>
 
 #include "DetectionReport.h"
@@ -40,7 +41,7 @@ int Application::Run() {
         if (!event.has_value()) {
             exitCode = 0;
         } else {
-            const std::optional<RuleLoadResult> loadResult = LoadRules(config->RulesDirectory());
+            const std::optional<RuleLoadResult> loadResult = LoadRules(*config);
             if (!loadResult.has_value()) {
                 exitCode = 0;
             } else {
@@ -112,6 +113,10 @@ void Application::LogConfiguration(const Configuration& config) const {
                       (config.JsonExport().enabled ? "true" : "false"));
     logger_.Debug("Configuration",
                   "  json_export.output_file = " + config.JsonExport().outputFile.string());
+    logger_.Debug("Configuration",
+                  std::string("  sigma.enabled = ") + (config.Sigma().enabled ? "true" : "false"));
+    logger_.Debug("Configuration",
+                  "  sigma.rules_directory = " + config.Sigma().rulesDirectory.string());
 }
 
 std::optional<Event> Application::LoadEvent(const std::filesystem::path& sampleEventFile) {
@@ -127,18 +132,39 @@ std::optional<Event> Application::LoadEvent(const std::filesystem::path& sampleE
     return result;
 }
 
-std::optional<RuleLoadResult> Application::LoadRules(
-    const std::filesystem::path& rulesDirectory) {
+std::optional<RuleLoadResult> Application::LoadRules(const Configuration& config) {
     try {
         profiler_.Start(ProfileStage::RuleLoading);
-        const std::vector<DiscoveredRule> discovered = ruleLoader_.DiscoverAndParse(rulesDirectory);
+        const std::vector<DiscoveredRule> discovered =
+            ruleLoader_.DiscoverAndParse(config.RulesDirectory());
         profiler_.Stop(ProfileStage::RuleLoading);
 
         profiler_.Start(ProfileStage::RuleValidation);
-        RuleLoadResult result = ruleLoader_.ValidateRules(discovered);
-        profiler_.Stop(ProfileStage::RuleValidation);
+        RuleLoadResult native = ruleLoader_.ValidateRules(discovered);
 
-        return result;
+        std::vector<Rule> accepted = native.Accepted();
+        std::vector<RejectedRule> rejected = native.Rejected();
+
+        if (config.Sigma().enabled) {
+            std::unordered_set<std::string> existingNames;
+            for (const auto& rule : accepted) {
+                existingNames.insert(rule.RuleName());
+            }
+
+            const RuleLoadResult sigma =
+                sigmaLoader_.LoadDirectory(config.Sigma().rulesDirectory, existingNames, logger_);
+            for (const auto& rule : sigma.Accepted()) {
+                accepted.push_back(rule);
+            }
+            for (const auto& item : sigma.Rejected()) {
+                rejected.push_back(item);
+            }
+        } else {
+            logger_.Info("SigmaLoader", "Sigma loading disabled; skipping");
+        }
+
+        profiler_.Stop(ProfileStage::RuleValidation);
+        return RuleLoadResult(std::move(accepted), std::move(rejected));
     } catch (const std::exception& e) {
         // Ensure open stage timers are closed even when discovery throws.
         profiler_.Stop(ProfileStage::RuleLoading);

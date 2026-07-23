@@ -14,6 +14,7 @@
 #include "ReportPrinter.h"
 #include "Rule.h"
 #include "RuleLoader.h"
+#include "SigmaLoader.h"
 
 namespace sentinelforge {
 
@@ -35,7 +36,7 @@ private:
     std::optional<Configuration> LoadConfiguration();
     void LogConfiguration(const Configuration& config) const;
     std::optional<Event> LoadEvent(const std::filesystem::path& sampleEventFile);
-    std::optional<RuleLoadResult> LoadRules(const std::filesystem::path& rulesDirectory);
+    std::optional<RuleLoadResult> LoadRules(const Configuration& config);
     void LogRuleLoadResult(const RuleLoadResult& result) const;
     void RunDetection(const Event& event,
                       const std::vector<Rule>& rules,
@@ -46,6 +47,7 @@ private:
     PerformanceProfiler profiler_;
     EventParser eventParser_;
     RuleLoader ruleLoader_;
+    SigmaLoader sigmaLoader_;
     DetectionEngine detectionEngine_;
     ReportPrinter reportPrinter_;
     JsonExporter jsonExporter_;

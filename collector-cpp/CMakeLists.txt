@@ -15,6 +15,20 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(nlohmann_json)
 
+set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "" FORCE)
+set(YAML_CPP_INSTALL OFF CACHE BOOL "" FORCE)
+# yaml-cpp 0.8.0 still declares cmake_minimum_required(< 3.5); allow configure
+# on newer CMake without forking the dependency.
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)
+FetchContent_Declare(
+    yaml-cpp
+    URL https://github.com/jbeder/yaml-cpp/archive/refs/tags/0.8.0.tar.gz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(yaml-cpp)
+
 # All collector logic lives in a static library so it can be linked by both the
 # production executable and the unit-test executable without recompiling or
 # duplicating the source list. main.cpp is intentionally excluded: it belongs
@@ -31,13 +45,20 @@ add_library(collector_core STATIC
     src/RuleParser.cpp
     src/RuleValidator.cpp
     src/RuleLoader.cpp
+    src/SigmaRule.cpp
+    src/SigmaParser.cpp
+    src/SigmaTranslator.cpp
+    src/SigmaLoader.cpp
     src/DetectionEngine.cpp
     src/DetectionReport.cpp
     src/ReportPrinter.cpp
 )
 
 target_include_directories(collector_core PUBLIC include)
-target_link_libraries(collector_core PUBLIC nlohmann_json::nlohmann_json)
+target_link_libraries(collector_core PUBLIC
+    nlohmann_json::nlohmann_json
+    yaml-cpp::yaml-cpp
+)
 
 # The collector reads all runtime settings from the configuration subsystem
 # rather than from hardcoded paths. Only the location of the config file, and
@@ -51,6 +72,7 @@ target_compile_definitions(collector_core PRIVATE
     DEFAULT_OUTPUT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../output"
     DEFAULT_LOG_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../logs/sentinelforge.log"
     DEFAULT_JSON_EXPORT_FILE="${CMAKE_CURRENT_SOURCE_DIR}/../detections.json"
+    DEFAULT_SIGMA_RULES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../sigma-rules"
 )
 
 add_executable(collector src/main.cpp)

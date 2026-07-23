@@ -13,5 +13,9 @@
     "json_export": {
         "enabled": true,
         "output_file": "detections.json"
+    },
+    "sigma": {
+        "enabled": true,
+        "rules_directory": "sigma-rules"
     }
 }

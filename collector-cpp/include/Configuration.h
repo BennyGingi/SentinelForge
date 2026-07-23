@@ -7,6 +7,7 @@
 
 #include "JsonExporter.h"
 #include "Logger.h"
+#include "SigmaLoader.h"
 
 namespace sentinelforge {
 
@@ -51,6 +52,7 @@ public:
     const std::filesystem::path& SampleEventFile() const;
     const LoggingSettings& Logging() const;
     const JsonExportSettings& JsonExport() const;
+    const SigmaSettings& Sigma() const;
     const std::filesystem::path& OutputDirectory() const;
     std::uint16_t ApiPort() const;
     bool DashboardEnabled() const;
@@ -60,6 +62,7 @@ private:
                   std::filesystem::path sampleEventFile,
                   LoggingSettings logging,
                   JsonExportSettings jsonExport,
+                  SigmaSettings sigma,
                   std::filesystem::path outputDirectory,
                   std::uint16_t apiPort,
                   bool dashboardEnabled);
@@ -68,6 +71,7 @@ private:
     std::filesystem::path sampleEventFile_;
     LoggingSettings logging_;
     JsonExportSettings jsonExport_;
+    SigmaSettings sigma_;
     std::filesystem::path outputDirectory_;
     std::uint16_t apiPort_;
     bool dashboardEnabled_;

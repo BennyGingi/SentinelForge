@@ -50,6 +50,8 @@ TEST_F(ConfigurationTest, DefaultConfigurationCreation) {
     EXPECT_FALSE(config.Logging().path.empty()) << "Default log path should be set";
     EXPECT_TRUE(config.JsonExport().enabled) << "JSON export should be enabled by default";
     EXPECT_FALSE(config.JsonExport().outputFile.empty()) << "Default JSON export path should be set";
+    EXPECT_TRUE(config.Sigma().enabled) << "Sigma loading should be enabled by default";
+    EXPECT_FALSE(config.Sigma().rulesDirectory.empty()) << "Default Sigma rules directory should be set";
     EXPECT_EQ(config.ApiPort(), static_cast<std::uint16_t>(8080)) << "Default API port should be 8080";
     EXPECT_FALSE(config.DashboardEnabled()) << "Dashboard should be disabled by default";
     EXPECT_FALSE(config.RulesDirectory().empty()) << "Default rules directory should be set";
@@ -99,6 +101,7 @@ TEST_F(ConfigurationTest, ImmutableGettersReturnExpectedValues) {
     const std::filesystem::path outputDir = tempDir_ / "custom-output";
     const std::filesystem::path logPath = tempDir_ / "custom.log";
     const std::filesystem::path exportPath = tempDir_ / "custom-detections.json";
+    const std::filesystem::path sigmaDir = tempDir_ / "custom-sigma";
 
     const std::string json = std::string("{\n") +
         "  \"rules_directory\": \"" + rulesDir.generic_string() + "\",\n" +
@@ -115,6 +118,10 @@ TEST_F(ConfigurationTest, ImmutableGettersReturnExpectedValues) {
         "  \"json_export\": {\n" +
         "    \"enabled\": false,\n" +
         "    \"output_file\": \"" + exportPath.generic_string() + "\"\n" +
+        "  },\n" +
+        "  \"sigma\": {\n" +
+        "    \"enabled\": false,\n" +
+        "    \"rules_directory\": \"" + sigmaDir.generic_string() + "\"\n" +
         "  }\n" +
         "}\n";
 
@@ -127,6 +134,9 @@ TEST_F(ConfigurationTest, ImmutableGettersReturnExpectedValues) {
     EXPECT_FALSE(config.JsonExport().enabled) << "json_export.enabled should be read as false";
     EXPECT_EQ(config.JsonExport().outputFile, exportPath)
         << "json_export.output_file should echo the file value";
+    EXPECT_FALSE(config.Sigma().enabled) << "sigma.enabled should be read as false";
+    EXPECT_EQ(config.Sigma().rulesDirectory, sigmaDir)
+        << "sigma.rules_directory should echo the file value";
     EXPECT_EQ(config.ApiPort(), static_cast<std::uint16_t>(1234)) << "api_port should be read as 1234";
     EXPECT_TRUE(config.DashboardEnabled()) << "dashboard_enabled should be read as true";
     EXPECT_EQ(config.RulesDirectory(), rulesDir) << "rules_directory getter should echo the file value";
