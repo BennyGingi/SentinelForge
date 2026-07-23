@@ -62,8 +62,11 @@ service:
 
 1. Load configuration and rules (native + Sigma) once.
 2. Poll `events/incoming/` for new `*.json` telemetry files.
-3. For each file: parse → detect → report → JSON export → move to `events/processed/`.
+3. For each file: parse → normalize → detect → report → JSON export → move to `events/processed/`.
 4. Repeat until CTRL+C (graceful shutdown finishes the current event).
+
+`DetectionEngine` evaluates a source-agnostic `NormalizedEvent` produced by
+`EventNormalizer`, so matching logic does not depend on JSON-specific types.
 
 ```
 events/

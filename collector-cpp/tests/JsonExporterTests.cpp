@@ -10,16 +10,17 @@
 
 #include "DetectionReport.h"
 #include "DetectionResult.h"
-#include "Event.h"
 #include "JsonExporter.h"
 #include "Logger.h"
+#include "NormalizedEvent.h"
 
 namespace sentinelforge {
 namespace {
 
-Event MakeEvent(const std::string& processName = "powershell.exe") {
-    return Event("2026-07-20T14:32:07Z", "WORKSTATION-07", "CORP\\jsmith", processName,
-                 "explorer.exe", "powershell.exe -enc SGVsbG8=", static_cast<std::uint32_t>(4242));
+NormalizedEvent MakeNormalized(const std::string& processName = "powershell.exe") {
+    return NormalizedEvent("2026-07-20T14:32:07Z", "WORKSTATION-07", "CORP\\jsmith", "", processName,
+                           "explorer.exe", "powershell.exe -enc SGVsbG8=", "", "", "", "", "", "",
+                           "json");
 }
 
 DetectionResult MakeMatch(const std::string& ruleName, const std::string& reason) {
@@ -31,7 +32,7 @@ DetectionResult MakeMiss(const std::string& ruleName) {
 }
 
 DetectionReport MakeReport(std::vector<DetectionResult> results) {
-    const Event event = MakeEvent();
+    const NormalizedEvent event = MakeNormalized();
     const std::size_t evaluated = results.size();
     return DetectionReport(event, evaluated, evaluated, std::move(results));
 }

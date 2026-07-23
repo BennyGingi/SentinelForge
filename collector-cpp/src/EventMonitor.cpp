@@ -23,6 +23,7 @@ EventMonitor::EventMonitor(MonitoringSettings settings,
                            JsonExportSettings jsonExport,
                            std::vector<Rule> rules,
                            EventParser& eventParser,
+                           EventNormalizer& eventNormalizer,
                            DetectionEngine& detectionEngine,
                            ReportPrinter& reportPrinter,
                            JsonExporter& jsonExporter,
@@ -32,6 +33,7 @@ EventMonitor::EventMonitor(MonitoringSettings settings,
       jsonExport_(std::move(jsonExport)),
       rules_(std::move(rules)),
       eventParser_(eventParser),
+      eventNormalizer_(eventNormalizer),
       detectionEngine_(detectionEngine),
       reportPrinter_(reportPrinter),
       jsonExporter_(jsonExporter),
@@ -121,11 +123,13 @@ void EventMonitor::ProcessEventFile(const std::filesystem::path& path) {
     }
     profiler_.Stop(ProfileStage::ParseTime);
 
+    const NormalizedEvent normalized = eventNormalizer_.Normalize(*event);
+
     profiler_.Start(ProfileStage::DetectionTime);
-    std::vector<DetectionResult> results = detectionEngine_.Evaluate(*event, rules_);
+    std::vector<DetectionResult> results = detectionEngine_.Evaluate(normalized, rules_);
     profiler_.Stop(ProfileStage::DetectionTime);
 
-    const DetectionReport report(*event, rules_.size(), results.size(), std::move(results));
+    const DetectionReport report(normalized, rules_.size(), results.size(), std::move(results));
 
     profiler_.Start(ProfileStage::ReportGenerationTime);
     reportPrinter_.Print(report, logger_);
