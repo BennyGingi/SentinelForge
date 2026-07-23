@@ -14,6 +14,7 @@ collector-cpp/
 │   ├── Configuration.h         # immutable, centrally-owned runtime settings
 │   ├── Logger.h                # structured logger (levels, destinations, components)
 │   ├── PerformanceProfiler.h   # named stage timing and performance summary
+│   ├── JsonExporter.h          # JSON detection export
 │   └── ...                     # Event/Rule parsing, validation, detection, reporting
 ├── src/
 │   ├── main.cpp                # entry point: construct Application, run, return exit code
@@ -21,6 +22,7 @@ collector-cpp/
 │   ├── Configuration.cpp
 │   ├── Logger.cpp
 │   ├── PerformanceProfiler.cpp
+│   ├── JsonExporter.cpp
 │   └── ...
 ├── tests/                      # GoogleTest unit suite (collector_tests)
 └── README.md
@@ -37,6 +39,7 @@ once at startup and passes each collaborator only the settings it needs.
 | `rules_directory`   | string  | Directory scanned for `*.json` rules      |
 | `sample_event_file` | string  | Telemetry event to evaluate               |
 | `logging`           | object  | Nested logging settings (see below)       |
+| `json_export`       | object  | Nested JSON export settings (see below)   |
 | `output_directory`  | string  | Directory for future output artifacts     |
 | `api_port`          | integer | Future API port (1–65535)                 |
 | `dashboard_enabled` | boolean | Future dashboard toggle                   |
@@ -50,6 +53,17 @@ once at startup and passes each collaborator only the settings it needs.
 | `file`    | boolean | Append to the log file                       |
 | `path`    | string  | Log file path (default `logs/sentinelforge.log`) |
 
+### JSON export object
+
+| Key           | Type    | Purpose                                         |
+| ------------- | ------- | ----------------------------------------------- |
+| `enabled`     | boolean | Write a detections JSON file after each run     |
+| `output_file` | string  | Destination path (default `detections.json`)    |
+
+When `enabled` is `false`, `JsonExporter` does nothing. When enabled, it writes
+a document with `generated_at`, `rules_loaded`, `rules_evaluated`, `matches`,
+and a `detections` array (empty when there are no matches). The console report
+from `ReportPrinter` is unchanged.
 Relative paths are resolved against the repository root. Behavior:
 
 - **File present and valid** — file values override the built-in defaults.

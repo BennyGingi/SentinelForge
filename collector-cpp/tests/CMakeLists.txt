@@ -18,6 +18,7 @@ add_executable(collector_tests
     DetectionEngineTests.cpp
     LoggerTests.cpp
     PerformanceProfilerTests.cpp
+    JsonExporterTests.cpp
 )
 
 # Tests link the production logic library directly and drive the domain

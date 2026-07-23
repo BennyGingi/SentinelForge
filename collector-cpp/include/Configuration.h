@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "JsonExporter.h"
 #include "Logger.h"
 
 namespace sentinelforge {
@@ -49,6 +50,7 @@ public:
     const std::filesystem::path& RulesDirectory() const;
     const std::filesystem::path& SampleEventFile() const;
     const LoggingSettings& Logging() const;
+    const JsonExportSettings& JsonExport() const;
     const std::filesystem::path& OutputDirectory() const;
     std::uint16_t ApiPort() const;
     bool DashboardEnabled() const;
@@ -57,6 +59,7 @@ private:
     Configuration(std::filesystem::path rulesDirectory,
                   std::filesystem::path sampleEventFile,
                   LoggingSettings logging,
+                  JsonExportSettings jsonExport,
                   std::filesystem::path outputDirectory,
                   std::uint16_t apiPort,
                   bool dashboardEnabled);
@@ -64,6 +67,7 @@ private:
     std::filesystem::path rulesDirectory_;
     std::filesystem::path sampleEventFile_;
     LoggingSettings logging_;
+    JsonExportSettings jsonExport_;
     std::filesystem::path outputDirectory_;
     std::uint16_t apiPort_;
     bool dashboardEnabled_;

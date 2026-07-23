@@ -8,6 +8,7 @@
 #include "DetectionEngine.h"
 #include "Event.h"
 #include "EventParser.h"
+#include "JsonExporter.h"
 #include "Logger.h"
 #include "PerformanceProfiler.h"
 #include "ReportPrinter.h"
@@ -36,7 +37,9 @@ private:
     std::optional<Event> LoadEvent(const std::filesystem::path& sampleEventFile);
     std::optional<RuleLoadResult> LoadRules(const std::filesystem::path& rulesDirectory);
     void LogRuleLoadResult(const RuleLoadResult& result) const;
-    void RunDetection(const Event& event, const std::vector<Rule>& rules);
+    void RunDetection(const Event& event,
+                      const std::vector<Rule>& rules,
+                      const JsonExportSettings& jsonExport);
     void PrintPerformanceSummary() const;
 
     Logger logger_;
@@ -45,6 +48,7 @@ private:
     RuleLoader ruleLoader_;
     DetectionEngine detectionEngine_;
     ReportPrinter reportPrinter_;
+    JsonExporter jsonExporter_;
 };
 
 }  // namespace sentinelforge
