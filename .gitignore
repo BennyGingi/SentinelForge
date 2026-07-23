@@ -2,6 +2,10 @@ build/
 **/build/
 logs/
 detections.json
+events/incoming/*.json
+events/processed/*.json
+!events/incoming/.gitkeep
+!events/processed/.gitkeep
 .vs/
 .vscode/ipch/
 *.obj

@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "EventMonitor.h"
 #include "JsonExporter.h"
 #include "Logger.h"
 #include "SigmaLoader.h"
@@ -53,6 +54,7 @@ public:
     const LoggingSettings& Logging() const;
     const JsonExportSettings& JsonExport() const;
     const SigmaSettings& Sigma() const;
+    const MonitoringSettings& Monitoring() const;
     const std::filesystem::path& OutputDirectory() const;
     std::uint16_t ApiPort() const;
     bool DashboardEnabled() const;
@@ -63,6 +65,7 @@ private:
                   LoggingSettings logging,
                   JsonExportSettings jsonExport,
                   SigmaSettings sigma,
+                  MonitoringSettings monitoring,
                   std::filesystem::path outputDirectory,
                   std::uint16_t apiPort,
                   bool dashboardEnabled);
@@ -72,6 +75,7 @@ private:
     LoggingSettings logging_;
     JsonExportSettings jsonExport_;
     SigmaSettings sigma_;
+    MonitoringSettings monitoring_;
     std::filesystem::path outputDirectory_;
     std::uint16_t apiPort_;
     bool dashboardEnabled_;

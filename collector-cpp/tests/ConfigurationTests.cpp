@@ -52,6 +52,11 @@ TEST_F(ConfigurationTest, DefaultConfigurationCreation) {
     EXPECT_FALSE(config.JsonExport().outputFile.empty()) << "Default JSON export path should be set";
     EXPECT_TRUE(config.Sigma().enabled) << "Sigma loading should be enabled by default";
     EXPECT_FALSE(config.Sigma().rulesDirectory.empty()) << "Default Sigma rules directory should be set";
+    EXPECT_TRUE(config.Monitoring().enabled) << "Monitoring should be enabled by default";
+    EXPECT_FALSE(config.Monitoring().inputDirectory.empty()) << "Default monitor input directory should be set";
+    EXPECT_FALSE(config.Monitoring().processedDirectory.empty())
+        << "Default monitor processed directory should be set";
+    EXPECT_EQ(config.Monitoring().pollIntervalMs, 1000u) << "Default poll interval should be 1000 ms";
     EXPECT_EQ(config.ApiPort(), static_cast<std::uint16_t>(8080)) << "Default API port should be 8080";
     EXPECT_FALSE(config.DashboardEnabled()) << "Dashboard should be disabled by default";
     EXPECT_FALSE(config.RulesDirectory().empty()) << "Default rules directory should be set";
@@ -102,6 +107,8 @@ TEST_F(ConfigurationTest, ImmutableGettersReturnExpectedValues) {
     const std::filesystem::path logPath = tempDir_ / "custom.log";
     const std::filesystem::path exportPath = tempDir_ / "custom-detections.json";
     const std::filesystem::path sigmaDir = tempDir_ / "custom-sigma";
+    const std::filesystem::path monitorIn = tempDir_ / "incoming";
+    const std::filesystem::path monitorOut = tempDir_ / "processed";
 
     const std::string json = std::string("{\n") +
         "  \"rules_directory\": \"" + rulesDir.generic_string() + "\",\n" +
@@ -122,6 +129,12 @@ TEST_F(ConfigurationTest, ImmutableGettersReturnExpectedValues) {
         "  \"sigma\": {\n" +
         "    \"enabled\": false,\n" +
         "    \"rules_directory\": \"" + sigmaDir.generic_string() + "\"\n" +
+        "  },\n" +
+        "  \"monitoring\": {\n" +
+        "    \"enabled\": false,\n" +
+        "    \"input_directory\": \"" + monitorIn.generic_string() + "\",\n" +
+        "    \"processed_directory\": \"" + monitorOut.generic_string() + "\",\n" +
+        "    \"poll_interval_ms\": 500\n" +
         "  }\n" +
         "}\n";
 
@@ -137,6 +150,10 @@ TEST_F(ConfigurationTest, ImmutableGettersReturnExpectedValues) {
     EXPECT_FALSE(config.Sigma().enabled) << "sigma.enabled should be read as false";
     EXPECT_EQ(config.Sigma().rulesDirectory, sigmaDir)
         << "sigma.rules_directory should echo the file value";
+    EXPECT_FALSE(config.Monitoring().enabled) << "monitoring.enabled should be read as false";
+    EXPECT_EQ(config.Monitoring().inputDirectory, monitorIn);
+    EXPECT_EQ(config.Monitoring().processedDirectory, monitorOut);
+    EXPECT_EQ(config.Monitoring().pollIntervalMs, 500u);
     EXPECT_EQ(config.ApiPort(), static_cast<std::uint16_t>(1234)) << "api_port should be read as 1234";
     EXPECT_TRUE(config.DashboardEnabled()) << "dashboard_enabled should be read as true";
     EXPECT_EQ(config.RulesDirectory(), rulesDir) << "rules_directory getter should echo the file value";

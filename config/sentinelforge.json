@@ -17,5 +17,11 @@
     "sigma": {
         "enabled": true,
         "rules_directory": "sigma-rules"
+    },
+    "monitoring": {
+        "enabled": true,
+        "input_directory": "events/incoming",
+        "processed_directory": "events/processed",
+        "poll_interval_ms": 1000
     }
 }

@@ -54,3 +54,29 @@ validated, translated into the internal `Rule` model, and evaluated alongside
 native JSON rules. Phase 1 supports a focused subset (`title`, `detection`,
 `selection` with `process_name` / `command_line|contains`, `condition: selection`,
 `level`, `tags`). See `collector-cpp/README.md` for limitations and roadmap.
+
+### Live event monitoring
+
+When `monitoring.enabled` is true (default), the collector becomes a continuous
+service:
+
+1. Load configuration and rules (native + Sigma) once.
+2. Poll `events/incoming/` for new `*.json` telemetry files.
+3. For each file: parse → detect → report → JSON export → move to `events/processed/`.
+4. Repeat until CTRL+C (graceful shutdown finishes the current event).
+
+```
+events/
+    incoming/     # drop new event JSON files here
+    processed/    # archived after successful or failed processing (never deleted)
+```
+
+Example:
+
+```
+copy sample-logs\process_create.json events\incoming\evt1.json
+.\scripts\run.ps1
+```
+
+Set `"monitoring": { "enabled": false }` to restore the previous one-shot
+sample-file mode.

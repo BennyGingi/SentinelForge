@@ -30,6 +30,12 @@
 #ifndef DEFAULT_SIGMA_RULES_DIR
 #define DEFAULT_SIGMA_RULES_DIR "sigma-rules"
 #endif
+#ifndef DEFAULT_MONITOR_INPUT_DIR
+#define DEFAULT_MONITOR_INPUT_DIR "events/incoming"
+#endif
+#ifndef DEFAULT_MONITOR_PROCESSED_DIR
+#define DEFAULT_MONITOR_PROCESSED_DIR "events/processed"
+#endif
 
 namespace sentinelforge {
 
@@ -181,6 +187,53 @@ SigmaSettings ParseSigmaSettings(const nlohmann::json& root,
     return settings;
 }
 
+MonitoringSettings ParseMonitoringSettings(const nlohmann::json& root,
+                                           const std::filesystem::path& base,
+                                           const MonitoringSettings& defaults) {
+    MonitoringSettings settings = defaults;
+    if (!root.contains("monitoring")) {
+        return settings;
+    }
+
+    const auto& section = root.at("monitoring");
+    if (!section.is_object()) {
+        throw ConfigurationError("Field 'monitoring' must be a JSON object");
+    }
+
+    if (section.contains("enabled")) {
+        const auto& value = section.at("enabled");
+        if (!value.is_boolean()) {
+            throw ConfigurationError("Field 'monitoring.enabled' must be a boolean");
+        }
+        settings.enabled = value.get<bool>();
+    }
+
+    if (section.contains("input_directory")) {
+        settings.inputDirectory =
+            ResolvePathField(section, "input_directory", base, defaults.inputDirectory);
+    }
+
+    if (section.contains("processed_directory")) {
+        settings.processedDirectory =
+            ResolvePathField(section, "processed_directory", base, defaults.processedDirectory);
+    }
+
+    if (section.contains("poll_interval_ms")) {
+        const auto& value = section.at("poll_interval_ms");
+        if (!value.is_number_unsigned()) {
+            throw ConfigurationError("Field 'monitoring.poll_interval_ms' must be a non-negative integer");
+        }
+        const std::uint64_t raw = value.get<std::uint64_t>();
+        if (raw < 1 || raw > 3600000) {
+            throw ConfigurationError(
+                "Field 'monitoring.poll_interval_ms' must be between 1 and 3600000");
+        }
+        settings.pollIntervalMs = static_cast<std::uint32_t>(raw);
+    }
+
+    return settings;
+}
+
 }  // namespace
 
 ConfigurationError::ConfigurationError(const std::string& message)
@@ -191,6 +244,7 @@ Configuration::Configuration(std::filesystem::path rulesDirectory,
                              LoggingSettings logging,
                              JsonExportSettings jsonExport,
                              SigmaSettings sigma,
+                             MonitoringSettings monitoring,
                              std::filesystem::path outputDirectory,
                              std::uint16_t apiPort,
                              bool dashboardEnabled)
@@ -199,6 +253,7 @@ Configuration::Configuration(std::filesystem::path rulesDirectory,
       logging_(std::move(logging)),
       jsonExport_(std::move(jsonExport)),
       sigma_(std::move(sigma)),
+      monitoring_(std::move(monitoring)),
       outputDirectory_(std::move(outputDirectory)),
       apiPort_(apiPort),
       dashboardEnabled_(dashboardEnabled) {}
@@ -208,6 +263,7 @@ const std::filesystem::path& Configuration::SampleEventFile() const { return sam
 const LoggingSettings& Configuration::Logging() const { return logging_; }
 const JsonExportSettings& Configuration::JsonExport() const { return jsonExport_; }
 const SigmaSettings& Configuration::Sigma() const { return sigma_; }
+const MonitoringSettings& Configuration::Monitoring() const { return monitoring_; }
 const std::filesystem::path& Configuration::OutputDirectory() const { return outputDirectory_; }
 std::uint16_t Configuration::ApiPort() const { return apiPort_; }
 bool Configuration::DashboardEnabled() const { return dashboardEnabled_; }
@@ -227,11 +283,18 @@ Configuration Configuration::Defaults() {
     sigma.enabled = true;
     sigma.rulesDirectory = std::filesystem::path(DEFAULT_SIGMA_RULES_DIR);
 
+    MonitoringSettings monitoring;
+    monitoring.enabled = true;
+    monitoring.inputDirectory = std::filesystem::path(DEFAULT_MONITOR_INPUT_DIR);
+    monitoring.processedDirectory = std::filesystem::path(DEFAULT_MONITOR_PROCESSED_DIR);
+    monitoring.pollIntervalMs = 1000;
+
     return Configuration(std::filesystem::path(DEFAULT_RULES_DIR),
                          std::filesystem::path(DEFAULT_SAMPLE_EVENT_FILE),
                          std::move(logging),
                          std::move(jsonExport),
                          std::move(sigma),
+                         std::move(monitoring),
                          std::filesystem::path(DEFAULT_OUTPUT_DIR),
                          kDefaultApiPort,
                          kDefaultDashboardEnabled);
@@ -275,6 +338,7 @@ Configuration Configuration::LoadFromFile(const std::filesystem::path& path, con
     LoggingSettings logging = ParseLoggingSettings(json, base, defaults.Logging());
     JsonExportSettings jsonExport = ParseJsonExportSettings(json, base, defaults.JsonExport());
     SigmaSettings sigma = ParseSigmaSettings(json, base, defaults.Sigma());
+    MonitoringSettings monitoring = ParseMonitoringSettings(json, base, defaults.Monitoring());
 
     std::uint16_t apiPort = defaults.ApiPort();
     if (json.contains("api_port")) {
@@ -299,8 +363,8 @@ Configuration Configuration::LoadFromFile(const std::filesystem::path& path, con
     }
 
     return Configuration(std::move(rulesDir), std::move(sampleEvent), std::move(logging),
-                         std::move(jsonExport), std::move(sigma), std::move(outputDir), apiPort,
-                         dashboard);
+                         std::move(jsonExport), std::move(sigma), std::move(monitoring),
+                         std::move(outputDir), apiPort, dashboard);
 }
 
 }  // namespace sentinelforge

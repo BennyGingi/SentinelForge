@@ -79,6 +79,29 @@ from `ReportPrinter` is unchanged.
 | `enabled`         | boolean | Load Sigma YAML rules in addition to JSON    |
 | `rules_directory` | string  | Directory scanned for `*.yml` / `*.yaml`     |
 
+### Monitoring object
+
+| Key                   | Type    | Purpose                                         |
+| --------------------- | ------- | ----------------------------------------------- |
+| `enabled`             | boolean | Continuous file-based event monitoring          |
+| `input_directory`     | string  | Polled for new `*.json` events (`events/incoming`) |
+| `processed_directory` | string  | Archive location (`events/processed`)           |
+| `poll_interval_ms`    | integer | Poll sleep when the input directory is empty    |
+
+When monitoring is enabled, `EventMonitor` loads rules once, then loops until
+CTRL+C. Each event is parsed, evaluated by `DetectionEngine`, printed,
+exported, and moved into the processed directory (files are never deleted).
+When disabled, the collector falls back to one-shot processing of
+`sample_event_file`.
+
+## Live event layout
+
+```
+events/
+    incoming/      # place new telemetry JSON files here
+    processed/     # EventMonitor archives files here after processing
+```
+
 ## Sigma support (Phase 1)
 
 Pipeline: `Sigma YAML → SigmaParser → SigmaRule → SigmaTranslator → Rule → DetectionEngine`.

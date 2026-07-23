@@ -7,6 +7,7 @@
 #include "Configuration.h"
 #include "DetectionEngine.h"
 #include "Event.h"
+#include "EventMonitor.h"
 #include "EventParser.h"
 #include "JsonExporter.h"
 #include "Logger.h"
@@ -19,12 +20,8 @@
 namespace sentinelforge {
 
 // Owns the collector's startup sequence and top-level lifecycle.
-// Coordinates the workflow only: configuration loading, telemetry loading,
-// detection, and report rendering are each delegated to their own class.
-//
-// Application owns the single Configuration instance for the process and
-// passes each collaborator only the settings it actually needs. Timing of
-// each stage is delegated entirely to PerformanceProfiler.
+// Loads configuration and rules once, then either runs a single sample event
+// (monitoring disabled) or delegates continuous processing to EventMonitor.
 class Application {
 public:
     Application();
@@ -41,6 +38,8 @@ private:
     void RunDetection(const Event& event,
                       const std::vector<Rule>& rules,
                       const JsonExportSettings& jsonExport);
+    int RunOneShot(const Configuration& config, const std::vector<Rule>& rules);
+    int RunMonitoring(const Configuration& config, std::vector<Rule> rules);
     void PrintPerformanceSummary() const;
 
     Logger logger_;
