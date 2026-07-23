@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "DetectionReport.h"
+#include "CorrelationAlert.h"
 
 namespace sentinelforge {
 
@@ -25,6 +26,7 @@ EventMonitor::EventMonitor(MonitoringSettings settings,
                            EventParser& eventParser,
                            EventNormalizer& eventNormalizer,
                            DetectionEngine& detectionEngine,
+                           CorrelationEngine& correlationEngine,
                            ReportPrinter& reportPrinter,
                            JsonExporter& jsonExporter,
                            PerformanceProfiler& profiler,
@@ -35,6 +37,7 @@ EventMonitor::EventMonitor(MonitoringSettings settings,
       eventParser_(eventParser),
       eventNormalizer_(eventNormalizer),
       detectionEngine_(detectionEngine),
+      correlationEngine_(correlationEngine),
       reportPrinter_(reportPrinter),
       jsonExporter_(jsonExporter),
       profiler_(profiler),
@@ -129,14 +132,19 @@ void EventMonitor::ProcessEventFile(const std::filesystem::path& path) {
     std::vector<DetectionResult> results = detectionEngine_.Evaluate(normalized, rules_);
     profiler_.Stop(ProfileStage::DetectionTime);
 
+    profiler_.Start(ProfileStage::CorrelationTime);
+    std::vector<CorrelationAlert> alerts = correlationEngine_.Process(normalized, results);
+    profiler_.Stop(ProfileStage::CorrelationTime);
+
     const DetectionReport report(normalized, rules_.size(), results.size(), std::move(results));
 
     profiler_.Start(ProfileStage::ReportGenerationTime);
     reportPrinter_.Print(report, logger_);
+    reportPrinter_.PrintCorrelationAlerts(alerts, logger_);
     profiler_.Stop(ProfileStage::ReportGenerationTime);
 
     profiler_.Start(ProfileStage::JsonExportTime);
-    jsonExporter_.Export(report, jsonExport_, logger_);
+    jsonExporter_.Export(report, jsonExport_, logger_, alerts);
     profiler_.Stop(ProfileStage::JsonExportTime);
 
     logger_.Info(kComponent, "Processing completed");

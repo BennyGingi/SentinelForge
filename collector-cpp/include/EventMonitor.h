@@ -6,6 +6,7 @@
 #include <string_view>
 #include <vector>
 
+#include "CorrelationEngine.h"
 #include "DetectionEngine.h"
 #include "EventNormalizer.h"
 #include "EventParser.h"
@@ -27,9 +28,8 @@ struct MonitoringSettings {
 };
 
 // Continuously polls an incoming directory for telemetry JSON files, runs the
-// parse → normalize → detect → report → export pipeline for each file, then
-// archives under processed/ (or failed/ on parse errors). DetectionEngine
-// evaluates NormalizedEvent only and has no source-specific logic.
+// parse → normalize → detect → correlate → report → export pipeline for each
+// file, then archives under processed/ (or failed/ on parse errors).
 //
 // Call RequestStop() (e.g. from a CTRL+C handler) to finish the current event
 // and exit the monitoring loop cleanly.
@@ -41,6 +41,7 @@ public:
                  EventParser& eventParser,
                  EventNormalizer& eventNormalizer,
                  DetectionEngine& detectionEngine,
+                 CorrelationEngine& correlationEngine,
                  ReportPrinter& reportPrinter,
                  JsonExporter& jsonExporter,
                  PerformanceProfiler& profiler,
@@ -70,6 +71,7 @@ private:
     EventParser& eventParser_;
     EventNormalizer& eventNormalizer_;
     DetectionEngine& detectionEngine_;
+    CorrelationEngine& correlationEngine_;
     ReportPrinter& reportPrinter_;
     JsonExporter& jsonExporter_;
     PerformanceProfiler& profiler_;

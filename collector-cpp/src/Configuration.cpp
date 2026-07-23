@@ -242,6 +242,55 @@ MonitoringSettings ParseMonitoringSettings(const nlohmann::json& root,
     return settings;
 }
 
+CorrelationSettings ParseCorrelationSettings(const nlohmann::json& root,
+                                             const CorrelationSettings& defaults) {
+    CorrelationSettings settings = defaults;
+    if (!root.contains("correlation")) {
+        return settings;
+    }
+
+    const auto& section = root.at("correlation");
+    if (!section.is_object()) {
+        throw ConfigurationError("Field 'correlation' must be a JSON object");
+    }
+
+    if (section.contains("enabled")) {
+        const auto& value = section.at("enabled");
+        if (!value.is_boolean()) {
+            throw ConfigurationError("Field 'correlation.enabled' must be a boolean");
+        }
+        settings.enabled = value.get<bool>();
+    }
+
+    if (section.contains("max_events")) {
+        const auto& value = section.at("max_events");
+        if (!value.is_number_unsigned()) {
+            throw ConfigurationError("Field 'correlation.max_events' must be a non-negative integer");
+        }
+        const std::uint64_t raw = value.get<std::uint64_t>();
+        if (raw < 1 || raw > 1000000) {
+            throw ConfigurationError("Field 'correlation.max_events' must be between 1 and 1000000");
+        }
+        settings.maxEvents = static_cast<std::size_t>(raw);
+    }
+
+    if (section.contains("time_window_seconds")) {
+        const auto& value = section.at("time_window_seconds");
+        if (!value.is_number_unsigned()) {
+            throw ConfigurationError(
+                "Field 'correlation.time_window_seconds' must be a non-negative integer");
+        }
+        const std::uint64_t raw = value.get<std::uint64_t>();
+        if (raw < 1 || raw > 86400) {
+            throw ConfigurationError(
+                "Field 'correlation.time_window_seconds' must be between 1 and 86400");
+        }
+        settings.timeWindowSeconds = static_cast<std::uint32_t>(raw);
+    }
+
+    return settings;
+}
+
 }  // namespace
 
 ConfigurationError::ConfigurationError(const std::string& message)
@@ -253,6 +302,7 @@ Configuration::Configuration(std::filesystem::path rulesDirectory,
                              JsonExportSettings jsonExport,
                              SigmaSettings sigma,
                              MonitoringSettings monitoring,
+                             CorrelationSettings correlation,
                              std::filesystem::path outputDirectory,
                              std::uint16_t apiPort,
                              bool dashboardEnabled)
@@ -262,6 +312,7 @@ Configuration::Configuration(std::filesystem::path rulesDirectory,
       jsonExport_(std::move(jsonExport)),
       sigma_(std::move(sigma)),
       monitoring_(std::move(monitoring)),
+      correlation_(std::move(correlation)),
       outputDirectory_(std::move(outputDirectory)),
       apiPort_(apiPort),
       dashboardEnabled_(dashboardEnabled) {}
@@ -272,6 +323,7 @@ const LoggingSettings& Configuration::Logging() const { return logging_; }
 const JsonExportSettings& Configuration::JsonExport() const { return jsonExport_; }
 const SigmaSettings& Configuration::Sigma() const { return sigma_; }
 const MonitoringSettings& Configuration::Monitoring() const { return monitoring_; }
+const CorrelationSettings& Configuration::Correlation() const { return correlation_; }
 const std::filesystem::path& Configuration::OutputDirectory() const { return outputDirectory_; }
 std::uint16_t Configuration::ApiPort() const { return apiPort_; }
 bool Configuration::DashboardEnabled() const { return dashboardEnabled_; }
@@ -298,12 +350,18 @@ Configuration Configuration::Defaults() {
     monitoring.failedDirectory = std::filesystem::path(DEFAULT_MONITOR_FAILED_DIR);
     monitoring.pollIntervalMs = 1000;
 
+    CorrelationSettings correlation;
+    correlation.enabled = true;
+    correlation.maxEvents = 1000;
+    correlation.timeWindowSeconds = 600;
+
     return Configuration(std::filesystem::path(DEFAULT_RULES_DIR),
                          std::filesystem::path(DEFAULT_SAMPLE_EVENT_FILE),
                          std::move(logging),
                          std::move(jsonExport),
                          std::move(sigma),
                          std::move(monitoring),
+                         std::move(correlation),
                          std::filesystem::path(DEFAULT_OUTPUT_DIR),
                          kDefaultApiPort,
                          kDefaultDashboardEnabled);
@@ -348,6 +406,7 @@ Configuration Configuration::LoadFromFile(const std::filesystem::path& path, con
     JsonExportSettings jsonExport = ParseJsonExportSettings(json, base, defaults.JsonExport());
     SigmaSettings sigma = ParseSigmaSettings(json, base, defaults.Sigma());
     MonitoringSettings monitoring = ParseMonitoringSettings(json, base, defaults.Monitoring());
+    CorrelationSettings correlation = ParseCorrelationSettings(json, defaults.Correlation());
 
     std::uint16_t apiPort = defaults.ApiPort();
     if (json.contains("api_port")) {
@@ -373,7 +432,7 @@ Configuration Configuration::LoadFromFile(const std::filesystem::path& path, con
 
     return Configuration(std::move(rulesDir), std::move(sampleEvent), std::move(logging),
                          std::move(jsonExport), std::move(sigma), std::move(monitoring),
-                         std::move(outputDir), apiPort, dashboard);
+                         std::move(correlation), std::move(outputDir), apiPort, dashboard);
 }
 
 }  // namespace sentinelforge

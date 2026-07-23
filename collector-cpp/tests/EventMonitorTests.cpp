@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 
 #include "Configuration.h"
+#include "CorrelationEngine.h"
 #include "DetectionEngine.h"
 #include "EventMonitor.h"
 #include "EventNormalizer.h"
@@ -70,8 +71,8 @@ protected:
 
     EventMonitor MakeMonitor() {
         return EventMonitor(settings_, jsonExport_, rules_, eventParser_, eventNormalizer_,
-                            detectionEngine_, reportPrinter_, jsonExporter_, profiler_,
-                            quietLogger_);
+                            detectionEngine_, correlationEngine_, reportPrinter_, jsonExporter_,
+                            profiler_, quietLogger_);
     }
 
     void WriteIncoming(const std::string& name, const std::string& contents) {
@@ -108,6 +109,7 @@ protected:
     EventParser eventParser_;
     EventNormalizer eventNormalizer_;
     DetectionEngine detectionEngine_;
+    CorrelationEngine correlationEngine_;
     ReportPrinter reportPrinter_;
     JsonExporter jsonExporter_;
     PerformanceProfiler profiler_;

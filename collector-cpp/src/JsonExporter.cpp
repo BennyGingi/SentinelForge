@@ -32,7 +32,8 @@ std::string UtcTimestampNow() {
 
 }  // namespace
 
-nlohmann::json JsonExporter::BuildDocument(const DetectionReport& report) const {
+nlohmann::json JsonExporter::BuildDocument(const DetectionReport& report,
+                                            const std::vector<CorrelationAlert>& alerts) const {
     nlohmann::json detections = nlohmann::json::array();
 
     for (const auto& result : report.Results()) {
@@ -46,16 +47,38 @@ nlohmann::json JsonExporter::BuildDocument(const DetectionReport& report) const 
                               {"reason", result.Reason()}});
     }
 
+    nlohmann::json correlationAlerts = nlohmann::json::array();
+    for (const auto& alert : alerts) {
+        nlohmann::json contributors = nlohmann::json::array();
+        for (const auto& event : alert.ContributingEvents()) {
+            contributors.push_back({{"timestamp", event.Timestamp()},
+                                    {"hostname", event.Hostname()},
+                                    {"process_name", event.ProcessName()},
+                                    {"parent_process", event.ParentProcess()},
+                                    {"command_line", event.CommandLine()}});
+        }
+        correlationAlerts.push_back({{"title", alert.Title()},
+                                     {"description", alert.Description()},
+                                     {"severity", alert.Severity()},
+                                     {"confidence", alert.Confidence()},
+                                     {"timestamp", alert.Timestamp()},
+                                     {"matched_event_count", alert.MatchedEventCount()},
+                                     {"mitre", alert.MitreTechniques()},
+                                     {"contributing_events", std::move(contributors)}});
+    }
+
     return nlohmann::json{{"generated_at", UtcTimestampNow()},
                           {"rules_loaded", report.RulesLoaded()},
                           {"rules_evaluated", report.RulesEvaluated()},
                           {"matches", report.MatchesFound()},
-                          {"detections", std::move(detections)}};
+                          {"detections", std::move(detections)},
+                          {"correlation_alerts", std::move(correlationAlerts)}};
 }
 
 bool JsonExporter::Export(const DetectionReport& report,
                           const JsonExportSettings& settings,
-                          const Logger& logger) const {
+                          const Logger& logger,
+                          const std::vector<CorrelationAlert>& alerts) const {
     if (!settings.enabled) {
         logger.Debug(kComponent, "JSON export disabled; skipping");
         return true;
@@ -69,7 +92,7 @@ bool JsonExporter::Export(const DetectionReport& report,
     logger.Info(kComponent, "JSON export started");
     logger.Info(kComponent, "Output file: " + settings.outputFile.string());
 
-    const nlohmann::json document = BuildDocument(report);
+    const nlohmann::json document = BuildDocument(report, alerts);
 
     const std::filesystem::path parent = settings.outputFile.parent_path();
     if (!parent.empty()) {

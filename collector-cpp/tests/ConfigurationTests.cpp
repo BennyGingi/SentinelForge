@@ -59,6 +59,10 @@ TEST_F(ConfigurationTest, DefaultConfigurationCreation) {
     EXPECT_FALSE(config.Monitoring().failedDirectory.empty())
         << "Default monitor failed directory should be set";
     EXPECT_EQ(config.Monitoring().pollIntervalMs, 1000u) << "Default poll interval should be 1000 ms";
+    EXPECT_TRUE(config.Correlation().enabled) << "Correlation should be enabled by default";
+    EXPECT_EQ(config.Correlation().maxEvents, 1000u) << "Default correlation max_events should be 1000";
+    EXPECT_EQ(config.Correlation().timeWindowSeconds, 600u)
+        << "Default correlation time window should be 600 seconds";
     EXPECT_EQ(config.ApiPort(), static_cast<std::uint16_t>(8080)) << "Default API port should be 8080";
     EXPECT_FALSE(config.DashboardEnabled()) << "Dashboard should be disabled by default";
     EXPECT_FALSE(config.RulesDirectory().empty()) << "Default rules directory should be set";
@@ -139,6 +143,11 @@ TEST_F(ConfigurationTest, ImmutableGettersReturnExpectedValues) {
         "    \"processed_directory\": \"" + monitorOut.generic_string() + "\",\n" +
         "    \"failed_directory\": \"" + monitorFailed.generic_string() + "\",\n" +
         "    \"poll_interval_ms\": 500\n" +
+        "  },\n" +
+        "  \"correlation\": {\n" +
+        "    \"enabled\": false,\n" +
+        "    \"max_events\": 250,\n" +
+        "    \"time_window_seconds\": 90\n" +
         "  }\n" +
         "}\n";
 
@@ -159,6 +168,9 @@ TEST_F(ConfigurationTest, ImmutableGettersReturnExpectedValues) {
     EXPECT_EQ(config.Monitoring().processedDirectory, monitorOut);
     EXPECT_EQ(config.Monitoring().failedDirectory, monitorFailed);
     EXPECT_EQ(config.Monitoring().pollIntervalMs, 500u);
+    EXPECT_FALSE(config.Correlation().enabled);
+    EXPECT_EQ(config.Correlation().maxEvents, 250u);
+    EXPECT_EQ(config.Correlation().timeWindowSeconds, 90u);
     EXPECT_EQ(config.ApiPort(), static_cast<std::uint16_t>(1234)) << "api_port should be read as 1234";
     EXPECT_TRUE(config.DashboardEnabled()) << "dashboard_enabled should be read as true";
     EXPECT_EQ(config.RulesDirectory(), rulesDir) << "rules_directory getter should echo the file value";

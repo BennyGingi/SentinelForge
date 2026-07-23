@@ -132,12 +132,30 @@ Unsupported fields and modifiers are ignored safely. Rules missing `title`,
 `detection`, `selection`, or `condition` are rejected with descriptive errors;
 remaining rules continue to load.
 
+### Event correlation
+
+Pipeline: `NormalizedEvent → DetectionEngine → CorrelationEngine → CorrelationAlert → Reporting`.
+
+`CorrelationEngine` keeps a rolling history of recent `NormalizedEvent` objects
+(configurable size and time window) and evaluates pluggable `CorrelationRule`
+implementations. Detection signature matching is unchanged; correlation runs
+after detection and does not require a signature hit.
+
+Example rule (framework validation only): Office process followed by
+PowerShell within 60 seconds.
+
+| Key                   | Type    | Purpose                                      |
+| --------------------- | ------- | -------------------------------------------- |
+| `enabled`             | boolean | Enable correlation evaluation                |
+| `max_events`          | integer | Maximum retained history events              |
+| `time_window_seconds` | integer | Expire history older than this window        |
+
 ### Limitations / future roadmap
 
 - No full Sigma condition language (`and` / `or` / `not` / aggregations)
 - No field modifiers beyond `|contains`
-- No correlation / timeframe / pipelines
-- Planned expansions: broader modifiers, richer conditions, more log sources
+- Correlation ships with one example behavioral rule; additional rules plug in via `CorrelationRule`
+- Planned expansions: broader modifiers, richer conditions, more log sources, more correlation rules
 Relative paths are resolved against the repository root. Behavior:
 
 - **File present and valid** — file values override the built-in defaults.

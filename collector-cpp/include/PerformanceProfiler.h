@@ -29,6 +29,7 @@ inline constexpr const char* ReportGeneration = "Report Generation";
 inline constexpr const char* TotalRuntime = "Total Runtime";
 inline constexpr const char* ParseTime = "Parse time";
 inline constexpr const char* DetectionTime = "Detection time";
+inline constexpr const char* CorrelationTime = "Correlation time";
 inline constexpr const char* ReportGenerationTime = "Report generation time";
 inline constexpr const char* JsonExportTime = "JSON export time";
 inline constexpr const char* TotalProcessing = "Total processing time";

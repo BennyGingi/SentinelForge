@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "CorrelationEngine.h"
 #include "EventMonitor.h"
 #include "JsonExporter.h"
 #include "Logger.h"
@@ -55,6 +56,7 @@ public:
     const JsonExportSettings& JsonExport() const;
     const SigmaSettings& Sigma() const;
     const MonitoringSettings& Monitoring() const;
+    const CorrelationSettings& Correlation() const;
     const std::filesystem::path& OutputDirectory() const;
     std::uint16_t ApiPort() const;
     bool DashboardEnabled() const;
@@ -66,6 +68,7 @@ private:
                   JsonExportSettings jsonExport,
                   SigmaSettings sigma,
                   MonitoringSettings monitoring,
+                  CorrelationSettings correlation,
                   std::filesystem::path outputDirectory,
                   std::uint16_t apiPort,
                   bool dashboardEnabled);
@@ -76,6 +79,7 @@ private:
     JsonExportSettings jsonExport_;
     SigmaSettings sigma_;
     MonitoringSettings monitoring_;
+    CorrelationSettings correlation_;
     std::filesystem::path outputDirectory_;
     std::uint16_t apiPort_;
     bool dashboardEnabled_;

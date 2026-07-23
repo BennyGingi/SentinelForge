@@ -75,6 +75,9 @@ TEST_F(JsonExporterTest, ValidJsonGenerated) {
     EXPECT_EQ(document.at("matches").get<std::size_t>(), 1u);
     ASSERT_TRUE(document.at("detections").is_array());
     ASSERT_EQ(document.at("detections").size(), 1u);
+    ASSERT_TRUE(document.contains("correlation_alerts"));
+    ASSERT_TRUE(document.at("correlation_alerts").is_array());
+    EXPECT_TRUE(document.at("correlation_alerts").empty());
 
     const auto& detection = document.at("detections").at(0);
     EXPECT_EQ(detection.at("rule"), "Suspicious PowerShell");
@@ -99,6 +102,8 @@ TEST_F(JsonExporterTest, EmptyDetectionsExportedCorrectly) {
     ASSERT_TRUE(document.at("detections").is_array());
     EXPECT_TRUE(document.at("detections").empty())
         << "Zero matches must still produce an empty detections array";
+    ASSERT_TRUE(document.contains("correlation_alerts"));
+    EXPECT_TRUE(document.at("correlation_alerts").empty());
 }
 
 TEST_F(JsonExporterTest, MultipleDetectionsExported) {
