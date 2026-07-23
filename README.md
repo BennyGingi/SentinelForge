@@ -46,3 +46,11 @@ by `PerformanceProfiler`; application code only marks stage boundaries.
 When `json_export.enabled` is true (default), each successful detection run
 also writes `detections.json` (path configurable). The console report is
 unchanged; JSON export is an additional output owned by `JsonExporter`.
+
+### Sigma rules
+
+When `sigma.enabled` is true, YAML rules under `sigma-rules/` are parsed,
+validated, translated into the internal `Rule` model, and evaluated alongside
+native JSON rules. Phase 1 supports a focused subset (`title`, `detection`,
+`selection` with `process_name` / `command_line|contains`, `condition: selection`,
+`level`, `tags`). See `collector-cpp/README.md` for limitations and roadmap.

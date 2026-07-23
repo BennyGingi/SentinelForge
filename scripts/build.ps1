@@ -22,7 +22,9 @@ if (-not (Test-Path $buildDir)) {
 
 if (-not (Test-Path $cacheFile)) {
     Write-Host "Configuring project..."
-    cmake -S $collectorDir -B $buildDir
+    # Quoted so PowerShell does not split the version on '.'. Required for
+    # yaml-cpp 0.8.0 under newer CMake (policy compatibility floor).
+    cmake -S $collectorDir -B $buildDir "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
     if ($LASTEXITCODE -ne 0) {
         Write-Error "CMake configuration failed with exit code $LASTEXITCODE."
         exit $LASTEXITCODE

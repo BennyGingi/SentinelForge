@@ -19,6 +19,7 @@ add_executable(collector_tests
     LoggerTests.cpp
     PerformanceProfilerTests.cpp
     JsonExporterTests.cpp
+    SigmaTests.cpp
 )
 
 # Tests link the production logic library directly and drive the domain
