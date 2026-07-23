@@ -23,6 +23,7 @@ add_library(collector_core STATIC
     src/Application.cpp
     src/Configuration.cpp
     src/Logger.cpp
+    src/PerformanceProfiler.cpp
     src/Event.cpp
     src/EventParser.cpp
     src/Rule.cpp

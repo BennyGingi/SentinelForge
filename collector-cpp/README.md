@@ -10,16 +10,19 @@ directory of detection rules, and prints a report.
 collector-cpp/
 ├── CMakeLists.txt
 ├── include/
-│   ├── Application.h      # application lifecycle owner; owns Configuration
-│   ├── Configuration.h    # immutable, centrally-owned runtime settings
-│   ├── Logger.h           # console logger with severity levels
-│   └── ...                # Event/Rule parsing, validation, detection, reporting
+│   ├── Application.h           # application lifecycle owner; owns Configuration
+│   ├── Configuration.h         # immutable, centrally-owned runtime settings
+│   ├── Logger.h                # structured logger (levels, destinations, components)
+│   ├── PerformanceProfiler.h   # named stage timing and performance summary
+│   └── ...                     # Event/Rule parsing, validation, detection, reporting
 ├── src/
-│   ├── main.cpp           # entry point: construct Application, run, return exit code
+│   ├── main.cpp                # entry point: construct Application, run, return exit code
 │   ├── Application.cpp
 │   ├── Configuration.cpp
 │   ├── Logger.cpp
+│   ├── PerformanceProfiler.cpp
 │   └── ...
+├── tests/                      # GoogleTest unit suite (collector_tests)
 └── README.md
 ```
 
@@ -33,10 +36,19 @@ once at startup and passes each collaborator only the settings it needs.
 | ------------------- | ------- | ----------------------------------------- |
 | `rules_directory`   | string  | Directory scanned for `*.json` rules      |
 | `sample_event_file` | string  | Telemetry event to evaluate               |
-| `logging_level`     | string  | `DEBUG`, `INFO`, `WARNING`, or `ERROR`    |
+| `logging`           | object  | Nested logging settings (see below)       |
 | `output_directory`  | string  | Directory for future output artifacts     |
 | `api_port`          | integer | Future API port (1–65535)                 |
 | `dashboard_enabled` | boolean | Future dashboard toggle                   |
+
+### Logging object
+
+| Key       | Type    | Purpose                                      |
+| --------- | ------- | -------------------------------------------- |
+| `level`   | string  | `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`, `FATAL` |
+| `console` | boolean | Emit to stdout/stderr                        |
+| `file`    | boolean | Append to the log file                       |
+| `path`    | string  | Log file path (default `logs/sentinelforge.log`) |
 
 Relative paths are resolved against the repository root. Behavior:
 
@@ -47,6 +59,23 @@ Relative paths are resolved against the repository root. Behavior:
   out-of-range port) — a clear error is printed and the collector exits
   cleanly with a non-zero status.
 
+## Performance profiling
+
+`PerformanceProfiler` measures named application stages with
+`std::chrono::steady_clock`. `Application` marks stages (`Start` / `Stop`);
+it never reads clocks itself. At the end of every run the profiler emits a
+structured performance summary through the Logger, covering at least:
+
+- Configuration
+- Rule Loading
+- Rule Validation
+- Event Loading
+- Detection Engine
+- Report Generation
+- Total Runtime
+
+New stages can be added later by name without changing the profiler.
+
 ## Build
 
 ```
@@ -54,7 +83,7 @@ cmake -S . -B build
 cmake --build build
 ```
 
-Produces the `collector` executable.
+Produces the `collector` executable and `collector_tests`.
 
 ## Run
 

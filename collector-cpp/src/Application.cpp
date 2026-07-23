@@ -21,44 +21,56 @@ Application::Application() {
 }
 
 int Application::Run() {
+    profiler_.Start(ProfileStage::TotalRuntime);
+
+    int exitCode = 0;
+
     const std::optional<Configuration> config = LoadConfiguration();
     if (!config.has_value()) {
         // Invalid configuration: the problem has already been reported.
         // Exit cleanly with a non-zero status rather than run with bad settings.
-        return 1;
+        exitCode = 1;
+    } else {
+        // Apply configured destinations and level. Logger reads LoggingSettings
+        // only — it never depends on Configuration itself.
+        logger_.Configure(config->Logging());
+        LogConfiguration(*config);
+
+        const std::optional<Event> event = LoadEvent(config->SampleEventFile());
+        if (!event.has_value()) {
+            exitCode = 0;
+        } else {
+            const std::optional<RuleLoadResult> loadResult = LoadRules(config->RulesDirectory());
+            if (!loadResult.has_value()) {
+                exitCode = 0;
+            } else {
+                LogRuleLoadResult(*loadResult);
+                RunDetection(*event, loadResult->Accepted());
+                exitCode = 0;
+            }
+        }
     }
 
-    // Apply configured destinations and level. Logger reads LoggingSettings
-    // only — it never depends on Configuration itself.
-    logger_.Configure(config->Logging());
-    LogConfiguration(*config);
-
-    const std::optional<Event> event = LoadEvent(config->SampleEventFile());
-    if (!event.has_value()) {
-        return 0;
-    }
-
-    const std::optional<RuleLoadResult> loadResult = LoadRules(config->RulesDirectory());
-    if (!loadResult.has_value()) {
-        return 0;
-    }
-
-    LogRuleLoadResult(*loadResult);
-    RunDetection(*event, loadResult->Accepted());
-    return 0;
+    profiler_.Stop(ProfileStage::TotalRuntime);
+    PrintPerformanceSummary();
+    return exitCode;
 }
 
 void Application::PrintBanner() const {
     logger_.Info("Application", "SentinelForge Collector started");
 }
 
-std::optional<Configuration> Application::LoadConfiguration() const {
+std::optional<Configuration> Application::LoadConfiguration() {
+    profiler_.Start(ProfileStage::Configuration);
+    std::optional<Configuration> result;
     try {
-        return Configuration::LoadFromFile(CONFIG_FILE_PATH, logger_);
+        result = Configuration::LoadFromFile(CONFIG_FILE_PATH, logger_);
     } catch (const ConfigurationError& e) {
         logger_.Error("Configuration", std::string("Configuration error: ") + e.what());
-        return std::nullopt;
+        result = std::nullopt;
     }
+    profiler_.Stop(ProfileStage::Configuration);
+    return result;
 }
 
 void Application::LogConfiguration(const Configuration& config) const {
@@ -97,20 +109,35 @@ void Application::LogConfiguration(const Configuration& config) const {
                   std::string("  logging.level     = ") + levelName(config.Logging().level));
 }
 
-std::optional<Event> Application::LoadEvent(const std::filesystem::path& sampleEventFile) const {
+std::optional<Event> Application::LoadEvent(const std::filesystem::path& sampleEventFile) {
+    profiler_.Start(ProfileStage::EventLoading);
+    std::optional<Event> result;
     try {
-        return eventParser_.ParseFile(sampleEventFile);
+        result = eventParser_.ParseFile(sampleEventFile);
     } catch (const std::exception& e) {
         logger_.Error("Application", std::string("Failed to load telemetry event: ") + e.what());
-        return std::nullopt;
+        result = std::nullopt;
     }
+    profiler_.Stop(ProfileStage::EventLoading);
+    return result;
 }
 
 std::optional<RuleLoadResult> Application::LoadRules(
-    const std::filesystem::path& rulesDirectory) const {
+    const std::filesystem::path& rulesDirectory) {
     try {
-        return ruleLoader_.LoadDirectory(rulesDirectory);
+        profiler_.Start(ProfileStage::RuleLoading);
+        const std::vector<DiscoveredRule> discovered = ruleLoader_.DiscoverAndParse(rulesDirectory);
+        profiler_.Stop(ProfileStage::RuleLoading);
+
+        profiler_.Start(ProfileStage::RuleValidation);
+        RuleLoadResult result = ruleLoader_.ValidateRules(discovered);
+        profiler_.Stop(ProfileStage::RuleValidation);
+
+        return result;
     } catch (const std::exception& e) {
+        // Ensure open stage timers are closed even when discovery throws.
+        profiler_.Stop(ProfileStage::RuleLoading);
+        profiler_.Stop(ProfileStage::RuleValidation);
         logger_.Error("RuleLoader", std::string("Failed to load detection rules: ") + e.what());
         return std::nullopt;
     }
@@ -130,12 +157,21 @@ void Application::LogRuleLoadResult(const RuleLoadResult& result) const {
     }
 }
 
-void Application::RunDetection(const Event& event, const std::vector<Rule>& rules) const {
+void Application::RunDetection(const Event& event, const std::vector<Rule>& rules) {
+    profiler_.Start(ProfileStage::DetectionEngine);
     std::vector<DetectionResult> results = detectionEngine_.Evaluate(event, rules);
+    profiler_.Stop(ProfileStage::DetectionEngine);
+
     const std::size_t rulesEvaluated = results.size();
     const DetectionReport report(event, rules.size(), rulesEvaluated, std::move(results));
 
+    profiler_.Start(ProfileStage::ReportGeneration);
     reportPrinter_.Print(report, logger_);
+    profiler_.Stop(ProfileStage::ReportGeneration);
+}
+
+void Application::PrintPerformanceSummary() const {
+    profiler_.LogSummary(logger_);
 }
 
 }  // namespace sentinelforge

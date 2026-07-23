@@ -41,11 +41,37 @@ private:
     std::vector<RejectedRule> rejected_;
 };
 
+// One rule file after the discovery/parse pass, before validation. Parse
+// failures are retained so validation can convert them into RejectedRule
+// entries without re-reading the file.
+class DiscoveredRule {
+public:
+    static DiscoveredRule FromParsed(std::filesystem::path source, Rule rule);
+    static DiscoveredRule FromParseError(std::filesystem::path source, std::string error);
+
+    const std::filesystem::path& Source() const;
+    bool ParseSucceeded() const;
+    const Rule& ParsedRule() const;
+    const std::string& ParseError() const;
+
+private:
+    DiscoveredRule(std::filesystem::path source, Rule rule, bool parseSucceeded,
+                   std::string parseError);
+
+    std::filesystem::path source_;
+    Rule rule_;
+    bool parseSucceeded_;
+    std::string parseError_;
+};
+
 // Loads every *.json rule file from a directory, parses it, and validates
-// it. Only valid rules are returned in RuleLoadResult::Accepted(); invalid
-// rules are never handed to the caller as usable Rule objects.
+// it. Discovery/parsing and validation are exposed as separate steps so the
+// Application can time them independently via PerformanceProfiler.
+// LoadDirectory() remains the single-call convenience that runs both.
 class RuleLoader {
 public:
+    std::vector<DiscoveredRule> DiscoverAndParse(const std::filesystem::path& directory) const;
+    RuleLoadResult ValidateRules(const std::vector<DiscoveredRule>& discovered) const;
     RuleLoadResult LoadDirectory(const std::filesystem::path& directory) const;
 
 private:

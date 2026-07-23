@@ -33,3 +33,10 @@ Given attack telemetry and detection rules, SentinelForge validates whether dete
 ```
 .\scripts\test.ps1
 ```
+
+### Performance profiling
+
+Each collector run ends with a structured **Performance Summary** (via the
+Logger) showing millisecond timings for configuration, rule loading/validation,
+event parsing, detection, report generation, and total runtime. Timing is owned
+by `PerformanceProfiler`; application code only marks stage boundaries.

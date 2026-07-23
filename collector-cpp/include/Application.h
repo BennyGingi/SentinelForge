@@ -9,6 +9,7 @@
 #include "Event.h"
 #include "EventParser.h"
 #include "Logger.h"
+#include "PerformanceProfiler.h"
 #include "ReportPrinter.h"
 #include "Rule.h"
 #include "RuleLoader.h"
@@ -20,7 +21,8 @@ namespace sentinelforge {
 // detection, and report rendering are each delegated to their own class.
 //
 // Application owns the single Configuration instance for the process and
-// passes each collaborator only the settings it actually needs.
+// passes each collaborator only the settings it actually needs. Timing of
+// each stage is delegated entirely to PerformanceProfiler.
 class Application {
 public:
     Application();
@@ -29,14 +31,16 @@ public:
 
 private:
     void PrintBanner() const;
-    std::optional<Configuration> LoadConfiguration() const;
+    std::optional<Configuration> LoadConfiguration();
     void LogConfiguration(const Configuration& config) const;
-    std::optional<Event> LoadEvent(const std::filesystem::path& sampleEventFile) const;
-    std::optional<RuleLoadResult> LoadRules(const std::filesystem::path& rulesDirectory) const;
+    std::optional<Event> LoadEvent(const std::filesystem::path& sampleEventFile);
+    std::optional<RuleLoadResult> LoadRules(const std::filesystem::path& rulesDirectory);
     void LogRuleLoadResult(const RuleLoadResult& result) const;
-    void RunDetection(const Event& event, const std::vector<Rule>& rules) const;
+    void RunDetection(const Event& event, const std::vector<Rule>& rules);
+    void PrintPerformanceSummary() const;
 
     Logger logger_;
+    PerformanceProfiler profiler_;
     EventParser eventParser_;
     RuleLoader ruleLoader_;
     DetectionEngine detectionEngine_;
