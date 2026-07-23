@@ -7,6 +7,15 @@
 
 #include "DetectionReport.h"
 
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#else
+#include <csignal>
+#endif
+
 // Absolute path to the configuration file, resolved by CMake at configure
 // time so the collector can locate it regardless of the working directory it
 // is launched from. This is the only baked-in path: everything else is read
@@ -16,6 +25,42 @@
 #endif
 
 namespace sentinelforge {
+
+namespace {
+
+// Active monitor for CTRL+C / signal handlers. Only one EventMonitor runs at
+// a time; Application clears this when RunMonitoring returns.
+EventMonitor* g_activeMonitor = nullptr;
+
+#if defined(_WIN32)
+BOOL WINAPI ConsoleCtrlHandler(DWORD ctrlType) {
+    if (ctrlType == CTRL_C_EVENT || ctrlType == CTRL_BREAK_EVENT ||
+        ctrlType == CTRL_CLOSE_EVENT) {
+        if (g_activeMonitor != nullptr) {
+            g_activeMonitor->RequestStop();
+        }
+        return TRUE;
+    }
+    return FALSE;
+}
+#else
+void OnShutdownSignal(int /*signal*/) {
+    if (g_activeMonitor != nullptr) {
+        g_activeMonitor->RequestStop();
+    }
+}
+#endif
+
+void InstallShutdownHandler() {
+#if defined(_WIN32)
+    SetConsoleCtrlHandler(ConsoleCtrlHandler, TRUE);
+#else
+    std::signal(SIGINT, OnShutdownSignal);
+    std::signal(SIGTERM, OnShutdownSignal);
+#endif
+}
+
+}  // namespace
 
 Application::Application() {
     PrintBanner();
@@ -28,26 +73,21 @@ int Application::Run() {
 
     const std::optional<Configuration> config = LoadConfiguration();
     if (!config.has_value()) {
-        // Invalid configuration: the problem has already been reported.
-        // Exit cleanly with a non-zero status rather than run with bad settings.
         exitCode = 1;
     } else {
-        // Apply configured destinations and level. Logger reads LoggingSettings
-        // only — it never depends on Configuration itself.
         logger_.Configure(config->Logging());
         LogConfiguration(*config);
 
-        const std::optional<Event> event = LoadEvent(config->SampleEventFile());
-        if (!event.has_value()) {
+        const std::optional<RuleLoadResult> loadResult = LoadRules(*config);
+        if (!loadResult.has_value()) {
             exitCode = 0;
         } else {
-            const std::optional<RuleLoadResult> loadResult = LoadRules(*config);
-            if (!loadResult.has_value()) {
-                exitCode = 0;
+            LogRuleLoadResult(*loadResult);
+
+            if (config->Monitoring().enabled) {
+                exitCode = RunMonitoring(*config, loadResult->Accepted());
             } else {
-                LogRuleLoadResult(*loadResult);
-                RunDetection(*event, loadResult->Accepted(), config->JsonExport());
-                exitCode = 0;
+                exitCode = RunOneShot(*config, loadResult->Accepted());
             }
         }
     }
@@ -117,6 +157,18 @@ void Application::LogConfiguration(const Configuration& config) const {
                   std::string("  sigma.enabled = ") + (config.Sigma().enabled ? "true" : "false"));
     logger_.Debug("Configuration",
                   "  sigma.rules_directory = " + config.Sigma().rulesDirectory.string());
+    logger_.Debug("Configuration",
+                  std::string("  monitoring.enabled = ") +
+                      (config.Monitoring().enabled ? "true" : "false"));
+    logger_.Debug("Configuration",
+                  "  monitoring.input_directory = " +
+                      config.Monitoring().inputDirectory.string());
+    logger_.Debug("Configuration",
+                  "  monitoring.processed_directory = " +
+                      config.Monitoring().processedDirectory.string());
+    logger_.Debug("Configuration",
+                  "  monitoring.poll_interval_ms = " +
+                      std::to_string(config.Monitoring().pollIntervalMs));
 }
 
 std::optional<Event> Application::LoadEvent(const std::filesystem::path& sampleEventFile) {
@@ -166,7 +218,6 @@ std::optional<RuleLoadResult> Application::LoadRules(const Configuration& config
         profiler_.Stop(ProfileStage::RuleValidation);
         return RuleLoadResult(std::move(accepted), std::move(rejected));
     } catch (const std::exception& e) {
-        // Ensure open stage timers are closed even when discovery throws.
         profiler_.Stop(ProfileStage::RuleLoading);
         profiler_.Stop(ProfileStage::RuleValidation);
         logger_.Error("RuleLoader", std::string("Failed to load detection rules: ") + e.what());
@@ -202,6 +253,34 @@ void Application::RunDetection(const Event& event,
     reportPrinter_.Print(report, logger_);
     jsonExporter_.Export(report, jsonExport, logger_);
     profiler_.Stop(ProfileStage::ReportGeneration);
+}
+
+int Application::RunOneShot(const Configuration& config, const std::vector<Rule>& rules) {
+    const std::optional<Event> event = LoadEvent(config.SampleEventFile());
+    if (!event.has_value()) {
+        return 0;
+    }
+    RunDetection(*event, rules, config.JsonExport());
+    return 0;
+}
+
+int Application::RunMonitoring(const Configuration& config, std::vector<Rule> rules) {
+    EventMonitor monitor(config.Monitoring(), config.JsonExport(), std::move(rules), eventParser_,
+                         detectionEngine_, reportPrinter_, jsonExporter_, profiler_, logger_);
+
+    g_activeMonitor = &monitor;
+    InstallShutdownHandler();
+
+    int exitCode = 0;
+    try {
+        exitCode = monitor.Run();
+    } catch (const std::exception& e) {
+        logger_.Error("EventMonitor", std::string("Monitoring failed: ") + e.what());
+        exitCode = 1;
+    }
+
+    g_activeMonitor = nullptr;
+    return exitCode;
 }
 
 void Application::PrintPerformanceSummary() const {

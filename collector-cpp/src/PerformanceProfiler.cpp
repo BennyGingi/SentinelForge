@@ -10,7 +10,7 @@ namespace {
 constexpr std::string_view kComponent = "PerformanceProfiler";
 
 bool IsTotalStage(std::string_view name) {
-    return name == ProfileStage::TotalRuntime;
+    return name == ProfileStage::TotalRuntime || name == ProfileStage::TotalProcessing;
 }
 
 }  // namespace
@@ -40,6 +40,12 @@ void PerformanceProfiler::Stop(std::string_view stage) {
 
     measurementIndex_[key] = measurements_.size();
     measurements_.push_back(TimingMeasurement{key, elapsed});
+}
+
+void PerformanceProfiler::Clear() {
+    openTimers_.clear();
+    measurements_.clear();
+    measurementIndex_.clear();
 }
 
 bool PerformanceProfiler::Has(std::string_view stage) const {
@@ -75,7 +81,7 @@ std::string PerformanceProfiler::FormatSummary() const {
     out << "==============================\n";
     out << "\n";
 
-    constexpr int kLabelWidth = 18;
+    constexpr int kLabelWidth = 22;
     for (const auto& sample : measurements_) {
         if (IsTotalStage(sample.name)) {
             continue;
@@ -88,10 +94,12 @@ std::string PerformanceProfiler::FormatSummary() const {
     out << "--------------------------------\n";
     out << "\n";
 
-    const auto total = Has(ProfileStage::TotalRuntime) ? Elapsed(ProfileStage::TotalRuntime)
-                                                       : SumOfStages();
-    out << std::left << std::setw(kLabelWidth) << "Total Runtime"
-        << ": " << total.count() << " ms\n";
+    const auto total = Has(ProfileStage::TotalProcessing) ? Elapsed(ProfileStage::TotalProcessing)
+                       : Has(ProfileStage::TotalRuntime)  ? Elapsed(ProfileStage::TotalRuntime)
+                                                          : SumOfStages();
+    const char* totalLabel =
+        Has(ProfileStage::TotalProcessing) ? "Total processing time" : "Total Runtime";
+    out << std::left << std::setw(kLabelWidth) << totalLabel << ": " << total.count() << " ms\n";
 
     return out.str();
 }

@@ -27,6 +27,11 @@ inline constexpr const char* EventLoading = "Event Loading";
 inline constexpr const char* DetectionEngine = "Detection Engine";
 inline constexpr const char* ReportGeneration = "Report Generation";
 inline constexpr const char* TotalRuntime = "Total Runtime";
+inline constexpr const char* ParseTime = "Parse time";
+inline constexpr const char* DetectionTime = "Detection time";
+inline constexpr const char* ReportGenerationTime = "Report generation time";
+inline constexpr const char* JsonExportTime = "JSON export time";
+inline constexpr const char* TotalProcessing = "Total processing time";
 }  // namespace ProfileStage
 
 // Encapsulates all timing for the collector. Callers mark stages with
@@ -38,12 +43,15 @@ public:
     void Start(std::string_view stage);
     void Stop(std::string_view stage);
 
+    // Clears open timers and completed measurements so the same profiler
+    // instance can time successive live events independently.
+    void Clear();
+
     bool Has(std::string_view stage) const;
     std::chrono::milliseconds Elapsed(std::string_view stage) const;
     const std::vector<TimingMeasurement>& Measurements() const;
 
-    // Sum of every completed measurement except Total Runtime itself.
-    // Useful when Total Runtime has not been recorded separately.
+    // Sum of every completed measurement except total-runtime style stages.
     std::chrono::milliseconds SumOfStages() const;
 
     // Multi-line professional summary suitable for logging.

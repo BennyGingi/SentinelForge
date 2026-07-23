@@ -49,6 +49,7 @@ add_library(collector_core STATIC
     src/SigmaParser.cpp
     src/SigmaTranslator.cpp
     src/SigmaLoader.cpp
+    src/EventMonitor.cpp
     src/DetectionEngine.cpp
     src/DetectionReport.cpp
     src/ReportPrinter.cpp
@@ -73,6 +74,8 @@ target_compile_definitions(collector_core PRIVATE
     DEFAULT_LOG_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../logs/sentinelforge.log"
     DEFAULT_JSON_EXPORT_FILE="${CMAKE_CURRENT_SOURCE_DIR}/../detections.json"
     DEFAULT_SIGMA_RULES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../sigma-rules"
+    DEFAULT_MONITOR_INPUT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../events/incoming"
+    DEFAULT_MONITOR_PROCESSED_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../events/processed"
 )
 
 add_executable(collector src/main.cpp)
