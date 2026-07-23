@@ -43,9 +43,11 @@ protected:
         std::filesystem::remove_all(tempDir_, ec);
         incoming_ = tempDir_ / "incoming";
         processed_ = tempDir_ / "processed";
+        failed_ = tempDir_ / "failed";
         exportPath_ = tempDir_ / "detections.json";
         std::filesystem::create_directories(incoming_);
         std::filesystem::create_directories(processed_);
+        std::filesystem::create_directories(failed_);
 
         rules_ = {Rule("Suspicious PowerShell", "powershell.exe", "-enc", "High", "T1059.001", "",
                        "", "", "")};
@@ -53,6 +55,7 @@ protected:
         settings_.enabled = true;
         settings_.inputDirectory = incoming_;
         settings_.processedDirectory = processed_;
+        settings_.failedDirectory = failed_;
         settings_.pollIntervalMs = 50;
 
         jsonExport_.enabled = true;
@@ -111,6 +114,7 @@ protected:
     std::filesystem::path tempDir_;
     std::filesystem::path incoming_;
     std::filesystem::path processed_;
+    std::filesystem::path failed_;
     std::filesystem::path exportPath_;
 };
 
@@ -170,18 +174,54 @@ TEST_F(EventMonitorTest, MultipleEventsProcessed) {
     EXPECT_EQ(CountJson(processed_), 2u);
 }
 
-TEST_F(EventMonitorTest, InvalidJsonIsArchivedWithoutCrash) {
+TEST_F(EventMonitorTest, MalformedJsonMovedToFailed) {
     EventMonitor monitor = MakeMonitor();
     std::thread worker([&monitor]() { monitor.Run(); });
 
     WriteIncoming("bad.json", "{ not-valid-json ");
+
+    ASSERT_TRUE(WaitUntil([this]() { return CountJson(failed_) == 1; }));
+    monitor.RequestStop();
+    worker.join();
+
+    EXPECT_EQ(CountJson(incoming_), 0u);
+    EXPECT_EQ(CountJson(processed_), 0u);
+    EXPECT_TRUE(std::filesystem::exists(failed_ / "bad.json"));
+    EXPECT_FALSE(std::filesystem::exists(exportPath_));
+}
+
+TEST_F(EventMonitorTest, ValidJsonMovedToProcessed) {
+    EventMonitor monitor = MakeMonitor();
+    std::thread worker([&monitor]() { monitor.Run(); });
+
+    WriteIncoming("good.json", kValidEventJson);
 
     ASSERT_TRUE(WaitUntil([this]() { return CountJson(processed_) == 1; }));
     monitor.RequestStop();
     worker.join();
 
     EXPECT_EQ(CountJson(incoming_), 0u);
-    EXPECT_TRUE(std::filesystem::exists(processed_ / "bad.json"));
+    EXPECT_EQ(CountJson(failed_), 0u);
+    EXPECT_TRUE(std::filesystem::exists(processed_ / "good.json"));
+    EXPECT_TRUE(std::filesystem::exists(exportPath_));
+}
+
+TEST_F(EventMonitorTest, MonitoringContinuesAfterFailure) {
+    EventMonitor monitor = MakeMonitor();
+    std::thread worker([&monitor]() { monitor.Run(); });
+
+    WriteIncoming("01_bad.json", "{ broken ");
+    WriteIncoming("02_good.json", kValidEventJson);
+
+    ASSERT_TRUE(WaitUntil(
+        [this]() { return CountJson(failed_) == 1 && CountJson(processed_) == 1; }));
+    monitor.RequestStop();
+    worker.join();
+
+    EXPECT_EQ(CountJson(incoming_), 0u);
+    EXPECT_TRUE(std::filesystem::exists(failed_ / "01_bad.json"));
+    EXPECT_TRUE(std::filesystem::exists(processed_ / "02_good.json"));
+    EXPECT_TRUE(std::filesystem::exists(exportPath_));
 }
 
 TEST_F(EventMonitorTest, FileMovementPreservesContents) {
@@ -222,6 +262,7 @@ TEST_F(EventMonitorTest, ConfigurationLoading) {
 
     const std::filesystem::path input = tempDir_ / "in";
     const std::filesystem::path processed = tempDir_ / "out";
+    const std::filesystem::path failed = tempDir_ / "fail";
 
     std::ofstream out(configPath);
     out << "{\n"
@@ -229,6 +270,7 @@ TEST_F(EventMonitorTest, ConfigurationLoading) {
         << "    \"enabled\": true,\n"
         << "    \"input_directory\": \"" << input.generic_string() << "\",\n"
         << "    \"processed_directory\": \"" << processed.generic_string() << "\",\n"
+        << "    \"failed_directory\": \"" << failed.generic_string() << "\",\n"
         << "    \"poll_interval_ms\": 250\n"
         << "  }\n"
         << "}\n";
@@ -238,6 +280,7 @@ TEST_F(EventMonitorTest, ConfigurationLoading) {
     EXPECT_TRUE(config.Monitoring().enabled);
     EXPECT_EQ(config.Monitoring().inputDirectory, input);
     EXPECT_EQ(config.Monitoring().processedDirectory, processed);
+    EXPECT_EQ(config.Monitoring().failedDirectory, failed);
     EXPECT_EQ(config.Monitoring().pollIntervalMs, 250u);
 }
 

@@ -76,6 +76,7 @@ target_compile_definitions(collector_core PRIVATE
     DEFAULT_SIGMA_RULES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../sigma-rules"
     DEFAULT_MONITOR_INPUT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../events/incoming"
     DEFAULT_MONITOR_PROCESSED_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../events/processed"
+    DEFAULT_MONITOR_FAILED_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../events/failed"
 )
 
 add_executable(collector src/main.cpp)

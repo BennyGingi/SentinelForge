@@ -36,6 +36,9 @@
 #ifndef DEFAULT_MONITOR_PROCESSED_DIR
 #define DEFAULT_MONITOR_PROCESSED_DIR "events/processed"
 #endif
+#ifndef DEFAULT_MONITOR_FAILED_DIR
+#define DEFAULT_MONITOR_FAILED_DIR "events/failed"
+#endif
 
 namespace sentinelforge {
 
@@ -218,6 +221,11 @@ MonitoringSettings ParseMonitoringSettings(const nlohmann::json& root,
             ResolvePathField(section, "processed_directory", base, defaults.processedDirectory);
     }
 
+    if (section.contains("failed_directory")) {
+        settings.failedDirectory =
+            ResolvePathField(section, "failed_directory", base, defaults.failedDirectory);
+    }
+
     if (section.contains("poll_interval_ms")) {
         const auto& value = section.at("poll_interval_ms");
         if (!value.is_number_unsigned()) {
@@ -287,6 +295,7 @@ Configuration Configuration::Defaults() {
     monitoring.enabled = true;
     monitoring.inputDirectory = std::filesystem::path(DEFAULT_MONITOR_INPUT_DIR);
     monitoring.processedDirectory = std::filesystem::path(DEFAULT_MONITOR_PROCESSED_DIR);
+    monitoring.failedDirectory = std::filesystem::path(DEFAULT_MONITOR_FAILED_DIR);
     monitoring.pollIntervalMs = 1000;
 
     return Configuration(std::filesystem::path(DEFAULT_RULES_DIR),

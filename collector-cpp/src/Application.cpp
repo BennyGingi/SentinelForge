@@ -167,6 +167,9 @@ void Application::LogConfiguration(const Configuration& config) const {
                   "  monitoring.processed_directory = " +
                       config.Monitoring().processedDirectory.string());
     logger_.Debug("Configuration",
+                  "  monitoring.failed_directory = " +
+                      config.Monitoring().failedDirectory.string());
+    logger_.Debug("Configuration",
                   "  monitoring.poll_interval_ms = " +
                       std::to_string(config.Monitoring().pollIntervalMs));
 }

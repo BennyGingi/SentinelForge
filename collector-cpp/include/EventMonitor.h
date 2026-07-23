@@ -3,6 +3,7 @@
 #include <atomic>
 #include <cstdint>
 #include <filesystem>
+#include <string_view>
 #include <vector>
 
 #include "DetectionEngine.h"
@@ -20,6 +21,7 @@ struct MonitoringSettings {
     bool enabled = true;
     std::filesystem::path inputDirectory{"events/incoming"};
     std::filesystem::path processedDirectory{"events/processed"};
+    std::filesystem::path failedDirectory{"events/failed"};
     std::uint32_t pollIntervalMs = 1000;
 };
 
@@ -55,7 +57,9 @@ private:
     void EnsureDirectories() const;
     std::vector<std::filesystem::path> ListIncomingEvents() const;
     void ProcessEventFile(const std::filesystem::path& path);
-    void ArchiveProcessedFile(const std::filesystem::path& path);
+    void MoveEventFile(const std::filesystem::path& path,
+                       const std::filesystem::path& destinationDirectory,
+                       std::string_view archiveLabel);
     void InterruptibleWait();
 
     MonitoringSettings settings_;

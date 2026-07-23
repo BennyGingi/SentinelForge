@@ -22,6 +22,7 @@
         "enabled": true,
         "input_directory": "events/incoming",
         "processed_directory": "events/processed",
+        "failed_directory": "events/failed",
         "poll_interval_ms": 1000
     }
 }
