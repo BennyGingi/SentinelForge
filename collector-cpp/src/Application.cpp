@@ -242,7 +242,7 @@ void Application::LogRuleLoadResult(const RuleLoadResult& result) const {
     }
 }
 
-void Application::RunDetection(const Event& event,
+void Application::RunDetection(const NormalizedEvent& event,
                                const std::vector<Rule>& rules,
                                const JsonExportSettings& jsonExport) {
     profiler_.Start(ProfileStage::DetectionEngine);
@@ -263,13 +263,14 @@ int Application::RunOneShot(const Configuration& config, const std::vector<Rule>
     if (!event.has_value()) {
         return 0;
     }
-    RunDetection(*event, rules, config.JsonExport());
+    RunDetection(eventNormalizer_.Normalize(*event), rules, config.JsonExport());
     return 0;
 }
 
 int Application::RunMonitoring(const Configuration& config, std::vector<Rule> rules) {
     EventMonitor monitor(config.Monitoring(), config.JsonExport(), std::move(rules), eventParser_,
-                         detectionEngine_, reportPrinter_, jsonExporter_, profiler_, logger_);
+                         eventNormalizer_, detectionEngine_, reportPrinter_, jsonExporter_, profiler_,
+                         logger_);
 
     g_activeMonitor = &monitor;
     InstallShutdownHandler();

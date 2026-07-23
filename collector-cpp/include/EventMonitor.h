@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "DetectionEngine.h"
+#include "EventNormalizer.h"
 #include "EventParser.h"
 #include "JsonExporter.h"
 #include "Logger.h"
@@ -26,9 +27,9 @@ struct MonitoringSettings {
 };
 
 // Continuously polls an incoming directory for telemetry JSON files, runs the
-// existing detection/report/export pipeline for each file, then archives the
-// file under the processed directory. DetectionEngine is used as a pure
-// evaluator and is never modified.
+// parse → normalize → detect → report → export pipeline for each file, then
+// archives under processed/ (or failed/ on parse errors). DetectionEngine
+// evaluates NormalizedEvent only and has no source-specific logic.
 //
 // Call RequestStop() (e.g. from a CTRL+C handler) to finish the current event
 // and exit the monitoring loop cleanly.
@@ -38,6 +39,7 @@ public:
                  JsonExportSettings jsonExport,
                  std::vector<Rule> rules,
                  EventParser& eventParser,
+                 EventNormalizer& eventNormalizer,
                  DetectionEngine& detectionEngine,
                  ReportPrinter& reportPrinter,
                  JsonExporter& jsonExporter,
@@ -66,6 +68,7 @@ private:
     JsonExportSettings jsonExport_;
     std::vector<Rule> rules_;
     EventParser& eventParser_;
+    EventNormalizer& eventNormalizer_;
     DetectionEngine& detectionEngine_;
     ReportPrinter& reportPrinter_;
     JsonExporter& jsonExporter_;

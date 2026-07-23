@@ -13,6 +13,7 @@
 #include "Configuration.h"
 #include "DetectionEngine.h"
 #include "EventMonitor.h"
+#include "EventNormalizer.h"
 #include "EventParser.h"
 #include "JsonExporter.h"
 #include "Logger.h"
@@ -68,8 +69,9 @@ protected:
     }
 
     EventMonitor MakeMonitor() {
-        return EventMonitor(settings_, jsonExport_, rules_, eventParser_, detectionEngine_,
-                            reportPrinter_, jsonExporter_, profiler_, quietLogger_);
+        return EventMonitor(settings_, jsonExport_, rules_, eventParser_, eventNormalizer_,
+                            detectionEngine_, reportPrinter_, jsonExporter_, profiler_,
+                            quietLogger_);
     }
 
     void WriteIncoming(const std::string& name, const std::string& contents) {
@@ -104,6 +106,7 @@ protected:
 
     Logger quietLogger_{LoggingSettings{LogLevel::Error, true, false, {}}};
     EventParser eventParser_;
+    EventNormalizer eventNormalizer_;
     DetectionEngine detectionEngine_;
     ReportPrinter reportPrinter_;
     JsonExporter jsonExporter_;

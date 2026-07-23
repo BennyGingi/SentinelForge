@@ -9,7 +9,9 @@
 
 #include "DetectionEngine.h"
 #include "Event.h"
+#include "EventNormalizer.h"
 #include "Logger.h"
+#include "NormalizedEvent.h"
 #include "Rule.h"
 #include "RuleLoader.h"
 #include "SigmaLoader.h"
@@ -200,8 +202,10 @@ TEST_F(SigmaTest, MixedSigmaAndNativeRulesLoadTogether) {
 
     const Event event("2026-07-20T14:32:07Z", "HOST", "user", "powershell.exe", "explorer.exe",
                       "powershell.exe -enc ZQBjAGgAbwA=", 1000);
+    EventNormalizer normalizer;
+    const NormalizedEvent normalized = normalizer.Normalize(event);
     DetectionEngine engine;
-    const auto results = engine.Evaluate(event, combined);
+    const auto results = engine.Evaluate(normalized, combined);
 
     std::size_t matches = 0;
     for (const auto& result : results) {
@@ -222,10 +226,12 @@ TEST_F(SigmaTest, TranslatedRuleMatchesLikeNativeEquivalent) {
 
     const Event event("2026-07-20T14:32:07Z", "HOST", "user", "powershell.exe", "explorer.exe",
                       "powershell.exe -enc ZQBjAGgAbwA=", 1000);
+    EventNormalizer normalizer;
+    const NormalizedEvent normalized = normalizer.Normalize(event);
 
     DetectionEngine engine;
-    const auto sigmaResults = engine.Evaluate(event, {fromSigma});
-    const auto nativeResults = engine.Evaluate(event, {native});
+    const auto sigmaResults = engine.Evaluate(normalized, {fromSigma});
+    const auto nativeResults = engine.Evaluate(normalized, {native});
 
     ASSERT_EQ(sigmaResults.size(), 1u);
     ASSERT_EQ(nativeResults.size(), 1u);

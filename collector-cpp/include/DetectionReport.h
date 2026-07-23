@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "DetectionResult.h"
-#include "Event.h"
+#include "NormalizedEvent.h"
 
 namespace sentinelforge {
 
@@ -14,7 +14,7 @@ namespace sentinelforge {
 // Pure data — no logging, no printing, no formatting.
 class DetectionReport {
 public:
-    DetectionReport(const Event& event,
+    DetectionReport(const NormalizedEvent& event,
                      std::size_t rulesLoaded,
                      std::size_t rulesEvaluated,
                      std::vector<DetectionResult> results);

@@ -41,6 +41,8 @@ add_library(collector_core STATIC
     src/JsonExporter.cpp
     src/Event.cpp
     src/EventParser.cpp
+    src/NormalizedEvent.cpp
+    src/EventNormalizer.cpp
     src/Rule.cpp
     src/RuleParser.cpp
     src/RuleValidator.cpp

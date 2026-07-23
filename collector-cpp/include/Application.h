@@ -8,9 +8,11 @@
 #include "DetectionEngine.h"
 #include "Event.h"
 #include "EventMonitor.h"
+#include "EventNormalizer.h"
 #include "EventParser.h"
 #include "JsonExporter.h"
 #include "Logger.h"
+#include "NormalizedEvent.h"
 #include "PerformanceProfiler.h"
 #include "ReportPrinter.h"
 #include "Rule.h"
@@ -35,7 +37,7 @@ private:
     std::optional<Event> LoadEvent(const std::filesystem::path& sampleEventFile);
     std::optional<RuleLoadResult> LoadRules(const Configuration& config);
     void LogRuleLoadResult(const RuleLoadResult& result) const;
-    void RunDetection(const Event& event,
+    void RunDetection(const NormalizedEvent& event,
                       const std::vector<Rule>& rules,
                       const JsonExportSettings& jsonExport);
     int RunOneShot(const Configuration& config, const std::vector<Rule>& rules);
@@ -45,6 +47,7 @@ private:
     Logger logger_;
     PerformanceProfiler profiler_;
     EventParser eventParser_;
+    EventNormalizer eventNormalizer_;
     RuleLoader ruleLoader_;
     SigmaLoader sigmaLoader_;
     DetectionEngine detectionEngine_;

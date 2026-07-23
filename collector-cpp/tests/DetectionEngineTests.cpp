@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <cstddef>
-#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -9,20 +8,18 @@
 #include "DetectionEngine.h"
 #include "DetectionResult.h"
 #include "Event.h"
+#include "EventNormalizer.h"
+#include "NormalizedEvent.h"
 #include "Rule.h"
 
 namespace sentinelforge {
 namespace {
 
-// Synthetic telemetry event. No JSON, no files: the domain object is built
-// directly so detection logic is tested in isolation.
-Event MakeEvent(const std::string& processName, const std::string& commandLine) {
-    return Event("2024-01-01T00:00:00Z", "WORKSTATION", "analyst", processName, "explorer.exe",
-                 commandLine, static_cast<std::uint32_t>(4242));
+NormalizedEvent MakeNormalized(const std::string& processName, const std::string& commandLine) {
+    return NormalizedEvent("2024-01-01T00:00:00Z", "WORKSTATION", "analyst", "", processName,
+                           "explorer.exe", commandLine, "", "", "", "", "", "", "json");
 }
 
-// Synthetic rule carrying only the fields the engine matches on, plus fixed
-// metadata so the resulting DetectionResult is fully populated.
 Rule MakeRule(const std::string& name,
               const std::string& processName,
               const std::string& commandLineContains) {
@@ -39,10 +36,12 @@ std::size_t CountMatches(const std::vector<DetectionResult>& results) {
 class DetectionEngineTest : public ::testing::Test {
 protected:
     DetectionEngine engine_;
+    EventNormalizer normalizer_;
 };
 
 TEST_F(DetectionEngineTest, MatchingRuleProducesOneDetection) {
-    const Event event = MakeEvent("powershell.exe", "powershell.exe -enc ZQBjAGgAbwA=");
+    const NormalizedEvent event =
+        MakeNormalized("powershell.exe", "powershell.exe -enc ZQBjAGgAbwA=");
     const std::vector<Rule> rules = {MakeRule("Encoded PowerShell", "powershell.exe", "-enc")};
 
     const std::vector<DetectionResult> results = engine_.Evaluate(event, rules);
@@ -53,7 +52,7 @@ TEST_F(DetectionEngineTest, MatchingRuleProducesOneDetection) {
 }
 
 TEST_F(DetectionEngineTest, NonMatchingRuleProducesZeroDetections) {
-    const Event event = MakeEvent("notepad.exe", "notepad.exe readme.txt");
+    const NormalizedEvent event = MakeNormalized("notepad.exe", "notepad.exe readme.txt");
     const std::vector<Rule> rules = {MakeRule("Encoded PowerShell", "powershell.exe", "-enc")};
 
     const std::vector<DetectionResult> results = engine_.Evaluate(event, rules);
@@ -64,7 +63,8 @@ TEST_F(DetectionEngineTest, NonMatchingRuleProducesZeroDetections) {
 }
 
 TEST_F(DetectionEngineTest, MultipleRulesReturnCorrectMatchCount) {
-    const Event event = MakeEvent("powershell.exe", "powershell.exe -enc ZQBjAGgAbwA=");
+    const NormalizedEvent event =
+        MakeNormalized("powershell.exe", "powershell.exe -enc ZQBjAGgAbwA=");
     const std::vector<Rule> rules = {
         MakeRule("Encoded PowerShell", "powershell.exe", "-enc"),   // matches
         MakeRule("Any PowerShell", "powershell.exe", "powershell"), // matches (case-insensitive)
@@ -78,7 +78,8 @@ TEST_F(DetectionEngineTest, MultipleRulesReturnCorrectMatchCount) {
 }
 
 TEST_F(DetectionEngineTest, DetectionReasonContainsExpectedText) {
-    const Event event = MakeEvent("powershell.exe", "powershell.exe -enc ZQBjAGgAbwA=");
+    const NormalizedEvent event =
+        MakeNormalized("powershell.exe", "powershell.exe -enc ZQBjAGgAbwA=");
     const std::vector<Rule> rules = {MakeRule("Encoded PowerShell", "powershell.exe", "-enc")};
 
     const std::vector<DetectionResult> results = engine_.Evaluate(event, rules);
@@ -89,6 +90,28 @@ TEST_F(DetectionEngineTest, DetectionReasonContainsExpectedText) {
         << "Reason should reference the matched process name; was: " << reason;
     EXPECT_NE(reason.find("-enc"), std::string::npos)
         << "Reason should reference the matched command-line fragment; was: " << reason;
+}
+
+TEST_F(DetectionEngineTest, DetectionUsingNormalizedEventsFromJsonEvent) {
+    const Event raw("2024-01-01T00:00:00Z", "WORKSTATION", "analyst", "powershell.exe",
+                    "explorer.exe", "powershell.exe -enc ZQBjAGgAbwA=", 4242);
+    const NormalizedEvent event = normalizer_.Normalize(raw);
+    const std::vector<Rule> rules = {MakeRule("Encoded PowerShell", "powershell.exe", "-enc")};
+
+    const std::vector<DetectionResult> results = engine_.Evaluate(event, rules);
+
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_TRUE(results.front().Matched());
+}
+
+TEST_F(DetectionEngineTest, EmptyNormalizedFieldsDoNotCrash) {
+    const NormalizedEvent empty;
+    const std::vector<Rule> rules = {MakeRule("Encoded PowerShell", "powershell.exe", "-enc")};
+
+    const std::vector<DetectionResult> results = engine_.Evaluate(empty, rules);
+
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_FALSE(results.front().Matched());
 }
 
 }  // namespace

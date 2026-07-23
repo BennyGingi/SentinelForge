@@ -90,11 +90,21 @@ from `ReportPrinter` is unchanged.
 | `poll_interval_ms`    | integer | Poll sleep when the input directory is empty    |
 
 When monitoring is enabled, `EventMonitor` loads rules once, then loops until
-CTRL+C. Each valid event is parsed, evaluated by `DetectionEngine`, printed,
-exported, and moved into the processed directory. Invalid/unreadable events
-are logged and moved into the failed directory; monitoring continues. Files
-are never deleted. When disabled, the collector falls back to one-shot
-processing of `sample_event_file`.
+CTRL+C. Each valid event is parsed, normalized into a `NormalizedEvent`,
+evaluated by `DetectionEngine`, printed, exported, and moved into the processed
+directory. Invalid/unreadable events are logged and moved into the failed
+directory; monitoring continues. Files are never deleted. When disabled, the
+collector falls back to one-shot processing of `sample_event_file`.
+
+## Event normalization
+
+Pipeline: `JSON → EventParser → Event → EventNormalizer → NormalizedEvent →
+DetectionEngine`.
+
+`DetectionEngine` and reporting consume only `NormalizedEvent`. They have no
+knowledge of JSON or other telemetry sources. Fields not present on a given
+event remain empty, preparing the collector for future Windows Event Log,
+Sysmon, EVTX, auditd, Zeek, and Suricata adapters.
 
 ## Live event layout
 
