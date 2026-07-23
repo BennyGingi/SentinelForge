@@ -56,6 +56,8 @@ TEST_F(ConfigurationTest, DefaultConfigurationCreation) {
     EXPECT_FALSE(config.Monitoring().inputDirectory.empty()) << "Default monitor input directory should be set";
     EXPECT_FALSE(config.Monitoring().processedDirectory.empty())
         << "Default monitor processed directory should be set";
+    EXPECT_FALSE(config.Monitoring().failedDirectory.empty())
+        << "Default monitor failed directory should be set";
     EXPECT_EQ(config.Monitoring().pollIntervalMs, 1000u) << "Default poll interval should be 1000 ms";
     EXPECT_EQ(config.ApiPort(), static_cast<std::uint16_t>(8080)) << "Default API port should be 8080";
     EXPECT_FALSE(config.DashboardEnabled()) << "Dashboard should be disabled by default";
@@ -109,6 +111,7 @@ TEST_F(ConfigurationTest, ImmutableGettersReturnExpectedValues) {
     const std::filesystem::path sigmaDir = tempDir_ / "custom-sigma";
     const std::filesystem::path monitorIn = tempDir_ / "incoming";
     const std::filesystem::path monitorOut = tempDir_ / "processed";
+    const std::filesystem::path monitorFailed = tempDir_ / "failed";
 
     const std::string json = std::string("{\n") +
         "  \"rules_directory\": \"" + rulesDir.generic_string() + "\",\n" +
@@ -134,6 +137,7 @@ TEST_F(ConfigurationTest, ImmutableGettersReturnExpectedValues) {
         "    \"enabled\": false,\n" +
         "    \"input_directory\": \"" + monitorIn.generic_string() + "\",\n" +
         "    \"processed_directory\": \"" + monitorOut.generic_string() + "\",\n" +
+        "    \"failed_directory\": \"" + monitorFailed.generic_string() + "\",\n" +
         "    \"poll_interval_ms\": 500\n" +
         "  }\n" +
         "}\n";
@@ -153,6 +157,7 @@ TEST_F(ConfigurationTest, ImmutableGettersReturnExpectedValues) {
     EXPECT_FALSE(config.Monitoring().enabled) << "monitoring.enabled should be read as false";
     EXPECT_EQ(config.Monitoring().inputDirectory, monitorIn);
     EXPECT_EQ(config.Monitoring().processedDirectory, monitorOut);
+    EXPECT_EQ(config.Monitoring().failedDirectory, monitorFailed);
     EXPECT_EQ(config.Monitoring().pollIntervalMs, 500u);
     EXPECT_EQ(config.ApiPort(), static_cast<std::uint16_t>(1234)) << "api_port should be read as 1234";
     EXPECT_TRUE(config.DashboardEnabled()) << "dashboard_enabled should be read as true";

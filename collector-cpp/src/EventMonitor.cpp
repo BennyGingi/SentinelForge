@@ -48,10 +48,9 @@ int EventMonitor::Run() {
     logger_.Info(kComponent, "Monitoring started");
     logger_.Info(kComponent, "Input directory: " + settings_.inputDirectory.string());
     logger_.Info(kComponent, "Processed directory: " + settings_.processedDirectory.string());
+    logger_.Info(kComponent, "Failed directory: " + settings_.failedDirectory.string());
 
     while (!StopRequested()) {
-        logger_.Info(kComponent, "Waiting for events");
-
         const std::vector<std::filesystem::path> pending = ListIncomingEvents();
         if (pending.empty()) {
             InterruptibleWait();
@@ -72,17 +71,18 @@ int EventMonitor::Run() {
 }
 
 void EventMonitor::EnsureDirectories() const {
-    std::error_code ec;
-    std::filesystem::create_directories(settings_.inputDirectory, ec);
-    if (ec) {
-        throw std::runtime_error("Failed to create input directory '" +
-                                 settings_.inputDirectory.string() + "': " + ec.message());
-    }
-    std::filesystem::create_directories(settings_.processedDirectory, ec);
-    if (ec) {
-        throw std::runtime_error("Failed to create processed directory '" +
-                                 settings_.processedDirectory.string() + "': " + ec.message());
-    }
+    const auto createOne = [](const std::filesystem::path& directory, const char* label) {
+        std::error_code ec;
+        std::filesystem::create_directories(directory, ec);
+        if (ec) {
+            throw std::runtime_error(std::string("Failed to create ") + label + " directory '" +
+                                     directory.string() + "': " + ec.message());
+        }
+    };
+
+    createOne(settings_.inputDirectory, "input");
+    createOne(settings_.processedDirectory, "processed");
+    createOne(settings_.failedDirectory, "failed");
 }
 
 std::vector<std::filesystem::path> EventMonitor::ListIncomingEvents() const {
@@ -115,7 +115,7 @@ void EventMonitor::ProcessEventFile(const std::filesystem::path& path) {
         profiler_.Stop(ProfileStage::ParseTime);
         profiler_.Stop(ProfileStage::TotalProcessing);
         logger_.Error(kComponent, std::string("Failed to parse event: ") + e.what());
-        ArchiveProcessedFile(path);
+        MoveEventFile(path, settings_.failedDirectory, "failed");
         profiler_.LogSummary(logger_);
         return;
     }
@@ -124,28 +124,28 @@ void EventMonitor::ProcessEventFile(const std::filesystem::path& path) {
     profiler_.Start(ProfileStage::DetectionTime);
     std::vector<DetectionResult> results = detectionEngine_.Evaluate(*event, rules_);
     profiler_.Stop(ProfileStage::DetectionTime);
-    logger_.Info(kComponent, "Detection completed");
 
     const DetectionReport report(*event, rules_.size(), results.size(), std::move(results));
 
     profiler_.Start(ProfileStage::ReportGenerationTime);
     reportPrinter_.Print(report, logger_);
     profiler_.Stop(ProfileStage::ReportGenerationTime);
-    logger_.Info(kComponent, "Report generated");
 
     profiler_.Start(ProfileStage::JsonExportTime);
     jsonExporter_.Export(report, jsonExport_, logger_);
     profiler_.Stop(ProfileStage::JsonExportTime);
-    logger_.Info(kComponent, "JSON exported");
 
-    ArchiveProcessedFile(path);
+    logger_.Info(kComponent, "Processing completed");
+    MoveEventFile(path, settings_.processedDirectory, "processed");
 
     profiler_.Stop(ProfileStage::TotalProcessing);
     profiler_.LogSummary(logger_);
 }
 
-void EventMonitor::ArchiveProcessedFile(const std::filesystem::path& path) {
-    const std::filesystem::path destination = settings_.processedDirectory / path.filename();
+void EventMonitor::MoveEventFile(const std::filesystem::path& path,
+                                 const std::filesystem::path& destinationDirectory,
+                                 std::string_view archiveLabel) {
+    const std::filesystem::path destination = destinationDirectory / path.filename();
     std::filesystem::path finalDestination = destination;
     if (std::filesystem::exists(finalDestination)) {
         const auto stem = path.stem().string();
@@ -154,8 +154,7 @@ void EventMonitor::ArchiveProcessedFile(const std::filesystem::path& path) {
             std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch())
                 .count();
-        finalDestination =
-            settings_.processedDirectory / (stem + "_" + std::to_string(stamp) + ext);
+        finalDestination = destinationDirectory / (stem + "_" + std::to_string(stamp) + ext);
     }
 
     std::error_code ec;
@@ -170,11 +169,13 @@ void EventMonitor::ArchiveProcessedFile(const std::filesystem::path& path) {
     }
 
     if (ec) {
-        logger_.Error(kComponent, "Failed to archive '" + path.string() + "': " + ec.message());
+        logger_.Error(kComponent, "Failed to move '" + path.string() + "' to " +
+                                      std::string(archiveLabel) + ": " + ec.message());
         return;
     }
 
-    logger_.Info(kComponent, "File archived: " + finalDestination.filename().string());
+    logger_.Info(kComponent, "File archived (" + std::string(archiveLabel) + "): " +
+                                 finalDestination.filename().string());
 }
 
 void EventMonitor::InterruptibleWait() {

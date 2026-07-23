@@ -68,7 +68,8 @@ service:
 ```
 events/
     incoming/     # drop new event JSON files here
-    processed/    # archived after successful or failed processing (never deleted)
+    processed/    # archived after successful processing (never deleted)
+    failed/       # archived after parse/read failures (never deleted)
 ```
 
 Example:
@@ -78,5 +79,6 @@ copy sample-logs\process_create.json events\incoming\evt1.json
 .\scripts\run.ps1
 ```
 
+Malformed events are moved to `events/failed/` and monitoring continues.
 Set `"monitoring": { "enabled": false }` to restore the previous one-shot
 sample-file mode.

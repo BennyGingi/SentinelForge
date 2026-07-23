@@ -85,21 +85,24 @@ from `ReportPrinter` is unchanged.
 | --------------------- | ------- | ----------------------------------------------- |
 | `enabled`             | boolean | Continuous file-based event monitoring          |
 | `input_directory`     | string  | Polled for new `*.json` events (`events/incoming`) |
-| `processed_directory` | string  | Archive location (`events/processed`)           |
+| `processed_directory` | string  | Success archive (`events/processed`)            |
+| `failed_directory`    | string  | Failure archive (`events/failed`)               |
 | `poll_interval_ms`    | integer | Poll sleep when the input directory is empty    |
 
 When monitoring is enabled, `EventMonitor` loads rules once, then loops until
-CTRL+C. Each event is parsed, evaluated by `DetectionEngine`, printed,
-exported, and moved into the processed directory (files are never deleted).
-When disabled, the collector falls back to one-shot processing of
-`sample_event_file`.
+CTRL+C. Each valid event is parsed, evaluated by `DetectionEngine`, printed,
+exported, and moved into the processed directory. Invalid/unreadable events
+are logged and moved into the failed directory; monitoring continues. Files
+are never deleted. When disabled, the collector falls back to one-shot
+processing of `sample_event_file`.
 
 ## Live event layout
 
 ```
 events/
     incoming/      # place new telemetry JSON files here
-    processed/     # EventMonitor archives files here after processing
+    processed/     # successfully processed events
+    failed/        # malformed or unreadable events
 ```
 
 ## Sigma support (Phase 1)

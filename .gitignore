@@ -4,8 +4,10 @@ logs/
 detections.json
 events/incoming/*.json
 events/processed/*.json
+events/failed/*.json
 !events/incoming/.gitkeep
 !events/processed/.gitkeep
+!events/failed/.gitkeep
 .vs/
 .vscode/ipch/
 *.obj
