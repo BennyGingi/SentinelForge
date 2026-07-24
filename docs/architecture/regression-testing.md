@@ -24,7 +24,7 @@ Run it:
 ./collector-cpp/build/regression/Debug/regression_runner.exe
 ```
 
-Optional flags: `--scenarios <dir>`, `--rules <dir>`, `--sigma-rules <dir>` (default to `sample-attacks/`, `rules/`, `sigma-rules/`), `--strict` (see below).
+Optional flags: `--scenarios <dir>`, `--rules <dir>`, `--sigma-rules <dir>` (default to `sample-attacks/`, `rules/`, `sigma-rules/`), `--strict`, `--fail-on-gap` (see below).
 
 ## Scenario format
 
@@ -62,7 +62,9 @@ expected_detections:
 | `description` | no | Free text. |
 | `mitre_techniques` | no | Documentation only — not checked against fired detections. |
 | `events` | yes, non-empty | Ordered list, fed through the pipeline in order. |
-| `expected_detections` | yes, non-empty | See below. |
+| `expected_detections` | yes (key must exist; `[]` is valid) | See below. |
+| `known_gap` | no, default `false` | Declares that nothing is expected to fire — a documented coverage gap, not a forgotten expectation. |
+| `gap_reason` | required whenever `known_gap: true` | Why the gap exists. The file fails to load without one — a gap that isn't explained isn't documented, it's just missing. |
 
 ### Event shape
 
@@ -77,25 +79,56 @@ Neither `Rule` nor `DetectionResult` carries a separate `id` field today — onl
 
 This was a deliberate choice to avoid touching the collector's rule/detection schema for the harness's sake. If a real need for a proper `id` field emerges later, that's a collector-cpp change, not a harness one.
 
-## The missing-vs-unexpected distinction — and why it exists
+## Three states, not two — and why
 
-The diff between a scenario's `expected_detections` and what actually fired has two very different failure modes, and the harness treats them differently on purpose:
+Every scenario resolves to exactly one of three verdicts. The distinction matters because "missing" and "unexpected" are not the same kind of problem, and a documented gap is not the same kind of thing as either:
 
-- **Expected but MISSING → always a failure**, `--strict` or not. This is *the* regression case: a detection that used to fire no longer does. Exit code is non-zero, CI goes red, no flag disables this.
-- **Fired but NOT expected → a warning by default**, promoted to a failure only with `--strict`. An unlisted detection firing isn't necessarily wrong — it's often a *second* legitimate rule catching the same technique (see `encoded_powershell.yaml`, where the Sigma-translated `"Suspicious Encoded PowerShell"` rule and the correlation engine's `office_launches_powershell` both fire alongside the required native rule), or a genuinely new true positive from a rule added since the scenario was written. Failing the build on *more* coverage than expected would punish adding detections and train people to either over-specify `expected_detections` or stop trusting the harness. It's still surfaced — every UNEXPECTED line prints — so a human can judge whether it's a new legitimate signal or a false positive worth investigating, without it blocking the pipeline.
+- **FAIL — expected but MISSING.** Always a failure, `--strict` or not, `known_gap` or not. This is *the* regression case: a detection that used to fire no longer does. `known_gap` never suppresses this — declaring "nothing is expected" and then explicitly listing something in `expected_detections` that doesn't fire is still a broken promise. No flag disables this.
+- **GAP — `known_gap: true` and, as expected, nothing fired.** Documented, not broken. Doesn't fail the build by default — a known, explained absence of coverage is information, not a bug. Promotable to a failure with `--fail-on-gap`, for a stricter mode (e.g. "no new known gaps allowed past this point," or a periodic audit that forces someone to look at the list).
+- **PASS — everything expected fired**, the ordinary case. Also covers the promotion case below, since a scenario doing *better* than promised is never a failure.
 
-Run with `--strict` when you want zero-tolerance for coverage drift (e.g. right before a release), and without it for normal day-to-day rule work.
+Layered on top of FAIL/PASS, independent of `known_gap`:
+
+- **Fired but NOT expected → a warning by default**, promoted to a failure only with `--strict`. An unlisted detection firing isn't necessarily wrong — often a *second* legitimate rule catching the same technique (see `encoded_powershell.yaml`, where the Sigma-translated `"Suspicious Encoded PowerShell"` rule and the correlation engine's `office_launches_powershell` both fire alongside the required native rule). Failing the build on *more* coverage than expected would punish adding detections and train people to either over-specify `expected_detections` or stop trusting the harness.
+
+### GAP CLOSED — the promotion case
+
+If a scenario marked `known_gap: true` actually produces a detection — someone wrote the rule and didn't come back to update the scenario — that's **good news reported loudly**, not silently absorbed into an ordinary PASS. Real output:
+
+```
+[PASS] promoted_test
+    UNEXPECTED (fired, not declared): Suspicious PowerShell
+    GAP CLOSED — now detected: Suspicious PowerShell
+    Remove known_gap/gap_reason from this scenario file — the gap it documented ("...") is closed.
+```
+
+It never fails the build — even under `--fail-on-gap`, which only affects gaps still genuinely open — because penalizing improved coverage would be perverse. The loud message exists specifically so these files don't rot: without it, a closed gap looks identical to an ordinary pass and nobody goes back to delete `known_gap`/`gap_reason`, and the scenario quietly stops documenting anything true.
+
+Run with `--strict` for zero-tolerance on coverage drift, `--fail-on-gap` when you want every gap resolved or explicitly re-justified (e.g. before a release), and with neither for normal day-to-day rule work.
 
 ## Report format
 
+Real output, current state of `sample-attacks/`:
+
 ```
+Loaded 4 rules from rules/ and sigma-rules/
+Running 5 scenario(s) from sample-attacks/
+
 [PASS] credential_dumping
-[FAIL] encoded_powershell
+[PASS] encoded_powershell
     UNEXPECTED (fired, not declared): Office application launches PowerShell
     UNEXPECTED (fired, not declared): Suspicious Encoded PowerShell
+[GAP]  lolbin_download
+    known gap: No rule in rules/ or sigma-rules/ matches certutil.exe or bitsadmin.exe...
+[PASS] persistence_chain
+    UNEXPECTED (fired, not declared): Suspicious Encoded PowerShell
+[GAP]  service_persistence
+    known gap: No rule in rules/ or sigma-rules/ matches sc.exe...
+
+3 passed, 2 known gaps, 0 failed
 ```
 
-(That specific example is a `--strict` run — without `--strict` those two UNEXPECTED lines don't flip the scenario to FAIL.) Exit code is non-zero if any scenario fails, for CI.
+Exit code is non-zero only if `failed > 0` — GAP never contributes to that count unless `--fail-on-gap` is set, in which case open gaps become FAIL and count there instead.
 
 ## Seed scenarios
 
@@ -104,9 +137,12 @@ Run with `--strict` when you want zero-tolerance for coverage drift (e.g. right 
 | `encoded_powershell.yaml` | T1059.001 | Native rule detection; also demonstrates the unexpected-vs-missing distinction live (Sigma duplicate + correlation both fire as warnings). |
 | `credential_dumping.yaml` | T1003.001 | Native rule detection, clean pass, no incidental extras. |
 | `persistence_chain.yaml` | T1059.001, T1547.001, T1204.002 | Multi-event chain that trips the **correlation engine** (`office_launches_powershell`), not just a single per-event rule — the harness covers cross-event behavioral detection, not only `DetectionEngine`. |
+| `service_persistence.yaml` | T1543.003 | `known_gap: true` — no rule matches `sc.exe`. Documents a real, current coverage gap instead of being fitted to an unrelated existing rule. |
+| `lolbin_download.yaml` | T1105, T1218 | `known_gap: true` — no rule matches `certutil.exe`/`bitsadmin.exe`. Same gap class as above. |
 
 ## Adding a scenario
 
 1. Write a new `sample-attacks/your_scenario.yaml` with realistic events (real process names, real technique IDs — no placeholder strings).
 2. Run `regression_runner` locally, confirm your expected rule/alert names actually appear as fired (copy them from the UNEXPECTED lines on a first run rather than guessing spellings).
-3. Commit. CI picks up every `*.yaml`/`*.yml` under `sample-attacks/` automatically — no registration step, no code change.
+3. If nothing fires and it should — no rule exists yet — don't write a rule just to make the scenario pass. Set `known_gap: true` and a real `gap_reason` instead. A scenario that documents an actual coverage gap is more useful than one fitted to whatever already exists.
+4. Commit. CI picks up every `*.yaml`/`*.yml` under `sample-attacks/` automatically — no registration step, no code change.

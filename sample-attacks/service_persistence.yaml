@@ -3,13 +3,6 @@ description: >
   Attacker installs a remote Windows service via sc.exe to establish
   persistence, pointing at a binary planted in a world-writable temp
   directory.
-
-  COVERAGE GAP: no rule in rules/ or sigma-rules/ matches sc.exe at all —
-  every existing rule's process_name check is powershell.exe or cmd.exe
-  (see rules/mimikatz_execution.json, suspicious_powershell.json,
-  suspicious_cmd_whoami.json). This scenario intentionally expects nothing
-  to fire; it documents the gap rather than being fitted to pass against
-  an unrelated existing rule.
 mitre_techniques:
   - T1543.003
 
@@ -28,5 +21,9 @@ events:
     parent_process: cmd.exe
     command_line: "sc.exe start WinUpdateHelper"
 
-# Deliberately empty: no rule currently covers T1543.003 service creation.
 expected_detections: []
+known_gap: true
+gap_reason: >
+  No rule in rules/ or sigma-rules/ matches sc.exe — every existing rule's
+  process_name check is powershell.exe or cmd.exe. T1543.003 service
+  creation has zero detection coverage today.

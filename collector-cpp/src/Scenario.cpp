@@ -10,12 +10,15 @@ namespace sentinelforge {
 
 Scenario::Scenario(std::string name, std::string description,
                    std::vector<std::string> mitreTechniques, std::vector<nlohmann::json> events,
-                   std::vector<std::string> expectedDetections)
+                   std::vector<std::string> expectedDetections, bool knownGap,
+                   std::string gapReason)
     : name_(std::move(name)),
       description_(std::move(description)),
       mitreTechniques_(std::move(mitreTechniques)),
       events_(std::move(events)),
-      expectedDetections_(std::move(expectedDetections)) {}
+      expectedDetections_(std::move(expectedDetections)),
+      knownGap_(knownGap),
+      gapReason_(std::move(gapReason)) {}
 
 const std::string& Scenario::Name() const { return name_; }
 const std::string& Scenario::Description() const { return description_; }
@@ -24,16 +27,29 @@ const std::vector<nlohmann::json>& Scenario::Events() const { return events_; }
 const std::vector<std::string>& Scenario::ExpectedDetections() const {
     return expectedDetections_;
 }
+bool Scenario::KnownGap() const { return knownGap_; }
+const std::string& Scenario::GapReason() const { return gapReason_; }
 
 namespace {
 
-Scenario EmptyScenario() { return Scenario("", "", {}, {}, {}); }
+Scenario EmptyScenario() { return Scenario("", "", {}, {}, {}, false, ""); }
 
 std::string ScalarOrEmpty(const YAML::Node& node) {
     if (!node || !node.IsScalar()) {
         return "";
     }
     return node.as<std::string>();
+}
+
+bool ScalarOrFalse(const YAML::Node& node) {
+    if (!node || !node.IsScalar()) {
+        return false;
+    }
+    try {
+        return node.as<bool>();
+    } catch (const YAML::Exception&) {
+        return false;
+    }
 }
 
 std::vector<std::string> StringList(const YAML::Node& node) {
@@ -141,12 +157,19 @@ ScenarioLoadResult ScenarioLoader::LoadFile(const std::filesystem::path& path) c
     }
     const std::vector<std::string> expectedDetections = StringList(expectedNode);
 
+    const bool knownGap = ScalarOrFalse(root["known_gap"]);
+    const std::string gapReason = ScalarOrEmpty(root["gap_reason"]);
+    if (knownGap && gapReason.empty()) {
+        errors.push_back("known_gap: true requires a non-empty 'gap_reason'");
+    }
+
     if (!errors.empty()) {
         return ScenarioLoadResult::Failure(name.empty() ? displayName : name, std::move(errors));
     }
 
     return ScenarioLoadResult::Success(Scenario(name, description, mitreTechniques,
-                                                std::move(events), expectedDetections));
+                                                std::move(events), expectedDetections, knownGap,
+                                                gapReason));
 }
 
 std::vector<std::filesystem::path> ScenarioLoader::DiscoverFiles(

@@ -36,11 +36,14 @@ using sentinelforge::Scenario;
 using sentinelforge::ScenarioLoader;
 using sentinelforge::SigmaLoader;
 
+enum class Verdict { Pass, Fail, Gap, GapClosed };
+
 struct ScenarioOutcome {
     std::string name;
-    bool passed = true;
-    std::vector<std::string> missing;   // expected but did not fire — always a failure
+    Verdict verdict = Verdict::Pass;
+    std::vector<std::string> missing;     // expected but did not fire — always a failure
     std::vector<std::string> unexpected;  // fired but not declared expected
+    std::string gapReason;                // only set for Gap / GapClosed
 };
 
 std::vector<Rule> LoadAllRules(const std::filesystem::path& rulesDir,
@@ -107,7 +110,16 @@ std::set<std::string> RunScenario(const Scenario& scenario, const std::vector<Ru
     return fired;
 }
 
-ScenarioOutcome Diff(const Scenario& scenario, const std::set<std::string>& fired, bool strict) {
+// Three states, not two:
+//   FAIL — something explicitly expected did not fire. The regression case.
+//   GAP  — known_gap: true and, as expected, nothing fired. Documented,
+//          not broken; doesn't fail the build unless --fail-on-gap.
+//   PASS — everything expected fired (ordinary case), OR known_gap: true
+//          but something DID fire — a promotion out of the gap. That's
+//          good news, never a failure, but reported loudly (GapClosed)
+//          so the file doesn't rot with a stale known_gap: true.
+ScenarioOutcome Diff(const Scenario& scenario, const std::set<std::string>& fired, bool strict,
+                     bool failOnGap) {
     ScenarioOutcome outcome;
     outcome.name = scenario.Name();
 
@@ -125,17 +137,61 @@ ScenarioOutcome Diff(const Scenario& scenario, const std::set<std::string>& fire
         }
     }
 
-    outcome.passed = outcome.missing.empty() && (!strict || outcome.unexpected.empty());
+    if (!outcome.missing.empty()) {
+        // A declared expectation not firing is a real regression regardless
+        // of known_gap — known_gap says "nothing is expected," not "ignore
+        // what I did explicitly ask for."
+        outcome.verdict = Verdict::Fail;
+        return outcome;
+    }
+
+    if (scenario.KnownGap()) {
+        outcome.gapReason = scenario.GapReason();
+        if (fired.empty()) {
+            outcome.verdict = failOnGap ? Verdict::Fail : Verdict::Gap;
+        } else {
+            outcome.verdict = Verdict::GapClosed;
+        }
+        return outcome;
+    }
+
+    outcome.verdict = (strict && !outcome.unexpected.empty()) ? Verdict::Fail : Verdict::Pass;
     return outcome;
 }
 
 void PrintOutcome(const ScenarioOutcome& outcome) {
-    std::cout << (outcome.passed ? "[PASS] " : "[FAIL] ") << outcome.name << "\n";
+    const char* label = "[PASS] ";
+    switch (outcome.verdict) {
+        case Verdict::Fail:
+            label = "[FAIL] ";
+            break;
+        case Verdict::Gap:
+            label = "[GAP]  ";
+            break;
+        case Verdict::Pass:
+        case Verdict::GapClosed:
+            label = "[PASS] ";
+            break;
+    }
+    std::cout << label << outcome.name << "\n";
+
     for (const auto& name : outcome.missing) {
         std::cout << "    MISSING (expected, did not fire): " << name << "\n";
     }
     for (const auto& name : outcome.unexpected) {
         std::cout << "    UNEXPECTED (fired, not declared): " << name << "\n";
+    }
+    if (outcome.verdict == Verdict::Gap) {
+        std::cout << "    known gap: " << outcome.gapReason << "\n";
+    }
+    if (outcome.verdict == Verdict::GapClosed) {
+        std::cout << "    GAP CLOSED — now detected: ";
+        for (std::size_t i = 0; i < outcome.unexpected.size(); ++i) {
+            std::cout << outcome.unexpected[i] << (i + 1 < outcome.unexpected.size() ? ", " : "");
+        }
+        std::cout << "\n    Remove known_gap/gap_reason from this scenario file — the gap it "
+                     "documented (\""
+                  << outcome.gapReason << "\") is closed.\n";
     }
 }
 
@@ -146,11 +202,14 @@ int main(int argc, char** argv) {
     std::filesystem::path rulesDir = DEFAULT_RULES_DIR;
     std::filesystem::path sigmaDir = DEFAULT_SIGMA_RULES_DIR;
     bool strict = false;
+    bool failOnGap = false;
 
     for (int i = 1; i < argc; ++i) {
         const std::string arg = argv[i];
         if (arg == "--strict") {
             strict = true;
+        } else if (arg == "--fail-on-gap") {
+            failOnGap = true;
         } else if (arg == "--scenarios" && i + 1 < argc) {
             scenariosDir = argv[++i];
         } else if (arg == "--rules" && i + 1 < argc) {
@@ -176,10 +235,18 @@ int main(int argc, char** argv) {
         return 2;
     }
 
-    std::cout << "Running " << scenarioFiles.size() << " scenario(s) from " << scenariosDir
-              << (strict ? " (--strict: unexpected detections fail too)" : "") << "\n\n";
+    std::cout << "Running " << scenarioFiles.size() << " scenario(s) from " << scenariosDir;
+    if (strict) {
+        std::cout << " (--strict: unexpected detections fail too)";
+    }
+    if (failOnGap) {
+        std::cout << " (--fail-on-gap: known gaps fail too)";
+    }
+    std::cout << "\n\n";
 
-    int failures = 0;
+    int passed = 0;
+    int gaps = 0;
+    int failed = 0;
     for (const auto& path : scenarioFiles) {
         const auto loadResult = scenarioLoader.LoadFile(path);
         if (!loadResult.IsValid()) {
@@ -187,22 +254,30 @@ int main(int argc, char** argv) {
             for (const auto& err : loadResult.Errors()) {
                 std::cout << "    " << err << "\n";
             }
-            ++failures;
+            ++failed;
             continue;
         }
 
         const Scenario& scenario = loadResult.GetScenario();
         const std::set<std::string> fired = RunScenario(scenario, rules);
-        const ScenarioOutcome outcome = Diff(scenario, fired, strict);
+        const ScenarioOutcome outcome = Diff(scenario, fired, strict, failOnGap);
         PrintOutcome(outcome);
-        if (!outcome.passed) {
-            ++failures;
+        switch (outcome.verdict) {
+            case Verdict::Fail:
+                ++failed;
+                break;
+            case Verdict::Gap:
+                ++gaps;
+                break;
+            case Verdict::Pass:
+            case Verdict::GapClosed:
+                ++passed;
+                break;
         }
     }
 
-    std::cout << "\n"
-              << (scenarioFiles.size() - static_cast<std::size_t>(failures)) << "/"
-              << scenarioFiles.size() << " scenarios passed\n";
+    std::cout << "\n" << passed << " passed, " << gaps << " known gaps, " << failed
+              << " failed\n";
 
-    return failures > 0 ? 1 : 0;
+    return failed > 0 ? 1 : 0;
 }

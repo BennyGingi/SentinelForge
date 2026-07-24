@@ -3,12 +3,6 @@ description: >
   A signed, trusted Windows binary (certutil.exe) is abused to pull a
   remote payload to disk, bypassing tooling that only alerts on
   known-bad downloaders. Classic living-off-the-land ingress technique.
-
-  COVERAGE GAP: no rule in rules/ or sigma-rules/ matches certutil.exe or
-  bitsadmin.exe — same gap as service_persistence.yaml, every existing
-  rule only checks powershell.exe or cmd.exe. This scenario intentionally
-  expects nothing to fire; it documents the gap rather than being fitted
-  to pass against an unrelated existing rule.
 mitre_techniques:
   - T1105
   - T1218
@@ -28,6 +22,10 @@ events:
     parent_process: cmd.exe
     command_line: "C:\\Users\\Public\\payload.exe"
 
-# Deliberately empty: no rule currently covers certutil/bitsadmin LOLBin
-# ingress (T1105/T1218).
 expected_detections: []
+known_gap: true
+gap_reason: >
+  No rule in rules/ or sigma-rules/ matches certutil.exe or bitsadmin.exe —
+  same gap class as service_persistence.yaml, every existing rule only
+  checks powershell.exe or cmd.exe. T1105/T1218 LOLBin ingress has zero
+  detection coverage today.

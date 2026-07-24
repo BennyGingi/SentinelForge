@@ -73,21 +73,25 @@ Running 5 scenario(s) from sample-attacks/
 [PASS] encoded_powershell
     UNEXPECTED (fired, not declared): Office application launches PowerShell
     UNEXPECTED (fired, not declared): Suspicious Encoded PowerShell
-[PASS] lolbin_download
+[GAP]  lolbin_download
+    known gap: No rule in rules/ or sigma-rules/ matches certutil.exe or bitsadmin.exe...
 [PASS] persistence_chain
     UNEXPECTED (fired, not declared): Suspicious Encoded PowerShell
-[PASS] service_persistence
+[GAP]  service_persistence
+    known gap: No rule in rules/ or sigma-rules/ matches sc.exe...
 
-5/5 scenarios passed
+3 passed, 2 known gaps, 0 failed
 ```
 
-A rule that used to fire and stops → **failure**, always. Something extra
-firing that wasn't declared → a warning by default (a second rule catching
-the same technique isn't a bug), promotable to a failure with `--strict`.
-`lolbin_download` and `service_persistence` pass with nothing firing at all
-— they document real, current coverage gaps (no rule yet matches
-`certutil.exe` or `sc.exe`) rather than being fitted to pass against
-unrelated existing rules. Full writeup:
+Three states, not two. A rule that used to fire and stops → **FAIL**,
+always. Something extra firing that wasn't declared → a warning by default
+(a second rule catching the same technique isn't a bug), promotable to a
+failure with `--strict`. `lolbin_download` and `service_persistence` are
+**GAP**, not a silent pass and not a failure — `known_gap: true` plus a
+`gap_reason` documents that no rule yet matches `certutil.exe`/`sc.exe`,
+rather than the scenario being fitted to pass against something unrelated.
+If either gap ever closes (a matching rule gets added), the harness reports
+it loudly as a promotion rather than letting the file rot. Full writeup:
 [`docs/architecture/regression-testing.md`](docs/architecture/regression-testing.md).
 
 ## Test counts

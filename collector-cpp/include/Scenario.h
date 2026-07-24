@@ -21,7 +21,7 @@ class Scenario {
 public:
     Scenario(std::string name, std::string description,
              std::vector<std::string> mitreTechniques, std::vector<nlohmann::json> events,
-             std::vector<std::string> expectedDetections);
+             std::vector<std::string> expectedDetections, bool knownGap, std::string gapReason);
 
     const std::string& Name() const;
     const std::string& Description() const;
@@ -29,12 +29,21 @@ public:
     const std::vector<nlohmann::json>& Events() const;
     const std::vector<std::string>& ExpectedDetections() const;
 
+    // known_gap: true declares that no rule/correlation is expected to fire
+    // for this scenario yet — a documented, intentional coverage gap rather
+    // than a malformed or forgotten expectation. gap_reason is required
+    // whenever known_gap is true; it's the whole point of marking it.
+    bool KnownGap() const;
+    const std::string& GapReason() const;
+
 private:
     std::string name_;
     std::string description_;
     std::vector<std::string> mitreTechniques_;
     std::vector<nlohmann::json> events_;
     std::vector<std::string> expectedDetections_;
+    bool knownGap_;
+    std::string gapReason_;
 };
 
 // Outcome of loading and schema-checking one scenario file.
@@ -59,8 +68,10 @@ private:
 };
 
 // Parses one scenario YAML file. Required top-level keys: name, events
-// (non-empty sequence of event maps), expected_detections (non-empty
-// sequence of strings). description and mitre_techniques are optional.
+// (non-empty sequence of event maps), expected_detections (a sequence —
+// empty is allowed, see Scenario::KnownGap). description and
+// mitre_techniques are optional. known_gap and gap_reason are optional but
+// gap_reason is required whenever known_gap: true is present.
 class ScenarioLoader {
 public:
     ScenarioLoadResult LoadFile(const std::filesystem::path& path) const;
