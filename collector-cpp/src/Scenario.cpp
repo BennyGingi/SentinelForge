@@ -130,10 +130,16 @@ ScenarioLoadResult ScenarioLoader::LoadFile(const std::filesystem::path& path) c
         }
     }
 
-    const std::vector<std::string> expectedDetections = StringList(root["expected_detections"]);
-    if (expectedDetections.empty()) {
-        errors.push_back("missing or empty required field 'expected_detections'");
+    // The key must be present as a sequence, but an empty sequence is a
+    // legitimate, deliberate statement: "no rule/correlation covers this
+    // technique yet" — a documented coverage gap, not a malformed file.
+    const YAML::Node expectedNode = root["expected_detections"];
+    if (!expectedNode || !expectedNode.IsSequence()) {
+        errors.push_back(
+            "missing required field 'expected_detections' (use [] to declare a documented "
+            "coverage gap — no detection expected)");
     }
+    const std::vector<std::string> expectedDetections = StringList(expectedNode);
 
     if (!errors.empty()) {
         return ScenarioLoadResult::Failure(name.empty() ? displayName : name, std::move(errors));

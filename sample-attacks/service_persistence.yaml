@@ -1,0 +1,32 @@
+name: service_persistence
+description: >
+  Attacker installs a remote Windows service via sc.exe to establish
+  persistence, pointing at a binary planted in a world-writable temp
+  directory.
+
+  COVERAGE GAP: no rule in rules/ or sigma-rules/ matches sc.exe at all —
+  every existing rule's process_name check is powershell.exe or cmd.exe
+  (see rules/mimikatz_execution.json, suspicious_powershell.json,
+  suspicious_cmd_whoami.json). This scenario intentionally expects nothing
+  to fire; it documents the gap rather than being fitted to pass against
+  an unrelated existing rule.
+mitre_techniques:
+  - T1543.003
+
+events:
+  - timestamp: "2026-07-24T22:18:02Z"
+    hostname: WORKSTATION-08
+    username: "CORP\\svc_backup"
+    process_name: sc.exe
+    parent_process: cmd.exe
+    command_line: "sc.exe create WinUpdateHelper binPath= \"C:\\Windows\\Temp\\svchelper.exe\" start= auto"
+
+  - timestamp: "2026-07-24T22:18:04Z"
+    hostname: WORKSTATION-08
+    username: "CORP\\svc_backup"
+    process_name: sc.exe
+    parent_process: cmd.exe
+    command_line: "sc.exe start WinUpdateHelper"
+
+# Deliberately empty: no rule currently covers T1543.003 service creation.
+expected_detections: []
