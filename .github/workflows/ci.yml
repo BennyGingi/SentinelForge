@@ -58,6 +58,13 @@ jobs:
             exit 1
           fi
 
+      # Detection regression harness (Issue #037) — kept as its own step,
+      # separate from ctest above, so the log makes it obvious which one
+      # failed: a unit-test regression vs. a rule/detection-coverage
+      # regression are different problems to chase down.
+      - name: Run detection regression harness
+        run: ./collector-cpp/build/regression/Debug/regression_runner.exe
+
       # ---- gui -----------------------------------------------------------
       # gtest_discover_tests() runs gui_tests.exe at build time to enumerate
       # cases, and ctest runs it again per case. Both need Qt6Core resolvable

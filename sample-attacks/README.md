@@ -1,3 +1,3 @@
 # sample-attacks
 
-Reserved for attack-scenario telemetry samples used in detection regression testing (see root README.md's stated goal) — not yet populated.
+Attack-scenario telemetry samples for the detection regression harness (`collector-cpp/regression`). One YAML file per scenario. See [`docs/architecture/regression-testing.md`](../docs/architecture/regression-testing.md) for the format and how to add one.

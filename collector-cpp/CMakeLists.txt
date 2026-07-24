@@ -98,3 +98,6 @@ endif()
 # Unit testing (GoogleTest) is fetched and configured in the tests subdirectory.
 enable_testing()
 add_subdirectory(tests)
+
+# Detection regression harness (Issue #037).
+add_subdirectory(regression)

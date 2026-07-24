@@ -1,0 +1,43 @@
+name: persistence_chain
+description: >
+  A phishing email attachment triggers Outlook to spawn PowerShell with an
+  encoded command, which then writes a Run-key persistence entry. This is a
+  multi-event behavioral chain, not a single-event signature — it must trip
+  the CORRELATION engine's office_launches_powershell rule, not only a
+  per-event native rule. Proves the harness covers correlation, not just
+  DetectionEngine.
+mitre_techniques:
+  - T1059.001
+  - T1547.001
+  - T1204.002
+
+events:
+  - timestamp: "2026-07-24T13:02:44Z"
+    hostname: WORKSTATION-22
+    username: "CORP\\rlee"
+    process_name: OUTLOOK.EXE
+    parent_process: explorer.exe
+    command_line: "\"C:\\Program Files\\Microsoft Office\\root\\Office16\\OUTLOOK.EXE\" /recycle"
+
+  - timestamp: "2026-07-24T13:02:51Z"
+    hostname: WORKSTATION-22
+    username: "CORP\\rlee"
+    process_name: powershell.exe
+    parent_process: OUTLOOK.EXE
+    command_line: "powershell.exe -NoP -W Hidden -enc VwByAGkAdABlAC0ASABvAHMAdAAgAFAAZQByAHMAaQBzAHQAZQBuAGMAZQA="
+
+  - timestamp: "2026-07-24T13:02:55Z"
+    hostname: WORKSTATION-22
+    username: "CORP\\rlee"
+    process_name: reg.exe
+    parent_process: powershell.exe
+    command_line: "reg.exe add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v Updater /d C:\\Users\\Public\\upd.exe /f"
+
+# "Suspicious PowerShell" fires on event 2's -enc flag (native, per-event).
+# "Office application launches PowerShell" fires on the OUTLOOK.EXE ->
+# powershell.exe chain (correlation, cross-event) — the actual point of this
+# scenario. The reg.exe persistence step completes the realistic chain but
+# has no matching native rule today, so it isn't listed as expected.
+expected_detections:
+  - "Suspicious PowerShell"
+  - "Office application launches PowerShell"
