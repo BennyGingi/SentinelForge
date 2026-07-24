@@ -1,0 +1,32 @@
+{
+  "T1003.001": {
+    "name": "OS Credential Dumping",
+    "subtechnique": "LSASS Memory",
+    "description": "Adversaries may attempt to access credential material stored in the process memory of the Local Security Authority Subsystem Service (LSASS)."
+  },
+  "T1059.001": {
+    "name": "Command and Scripting Interpreter",
+    "subtechnique": "PowerShell",
+    "description": "Adversaries may abuse PowerShell commands and scripts for execution."
+  },
+  "T1053.005": {
+    "name": "Scheduled Task/Job",
+    "subtechnique": "Scheduled Task",
+    "description": "Adversaries may abuse the Windows Task Scheduler to perform task scheduling for initial or recurring execution of malicious code."
+  },
+  "T1547.001": {
+    "name": "Boot or Logon Autostart Execution",
+    "subtechnique": "Registry Run Keys / Startup Folder",
+    "description": "Adversaries may achieve persistence by adding a program to a startup folder or referencing it with a Registry run key."
+  },
+  "T1543.003": {
+    "name": "Create or Modify System Process",
+    "subtechnique": "Windows Service",
+    "description": "Adversaries may create or modify Windows services to repeatedly execute malicious payloads as part of persistence."
+  },
+  "T1135": {
+    "name": "Network Share Discovery",
+    "subtechnique": "",
+    "description": "Adversaries may look for folders and drives shared on remote systems as a precursor to lateral movement or collection."
+  }
+}

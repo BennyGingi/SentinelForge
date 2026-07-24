@@ -8,7 +8,8 @@ Given attack telemetry and detection rules, SentinelForge validates whether dete
 
 ## Technologies
 
-- C++17
+- C++17 (collector) / C++20 (desktop console)
+- Qt 6 (desktop console)
 - Python 3
 - Docker
 - Kubernetes
@@ -16,23 +17,35 @@ Given attack telemetry and detection rules, SentinelForge validates whether dete
 
 ## Development
 
-### Build
+### Build collector
 
 ```
 .\scripts\build.ps1
 ```
 
-### Run
+### Run collector
 
 ```
 .\scripts\run.ps1
 ```
 
-### Test
+### Test collector
 
 ```
 .\scripts\test.ps1
 ```
+
+### Build / run desktop console
+
+Requires Qt 6 (`CMAKE_PREFIX_PATH`, e.g. `C:\Qt\6.7.3\msvc2019_64`):
+
+```
+.\scripts\build-gui.ps1
+.\scripts\run-gui.ps1
+```
+
+The GUI is an independent target under `gui/`. It consumes telemetry only via
+`ITelemetrySource` (mock today; collector integration later). See `docs/BRIEF.md`.
 
 ### Performance profiling
 
