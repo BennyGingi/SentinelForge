@@ -40,6 +40,8 @@ Configuration → Rule Loader → Live Event Monitor → JSON Parser
 
 Includes configuration system, rule validation, native detection rules, Sigma translation, structured logging, performance profiler, JSON export, live event monitoring, event normalization, detection engine, correlation engine, and automated tests.
 
+**Scope of "implemented and tested" — collector only, not yet wired to the GUI.** Every item above is implemented and covered by `collector-cpp`'s GoogleTest suite. None of it is reachable from the desktop console today: `ITelemetrySource` (§4) has exactly one implementation, `MockTelemetrySource`, and the GUI's Detections/Correlation tables render mock data, not collector output. `CollectorTelemetrySource` — the adapter that would carry real detections and `CorrelationAlert`s from this backend into the GUI — does not exist yet; it remains future work per §4's diagram ("future integration"). Do not read "implemented and tested" as "visible in the running desktop console."
+
 The collector must continue to build and test independently of the GUI. The GUI is a separate CMake target.
 
 ## 4. GUI architecture

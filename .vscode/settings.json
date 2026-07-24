@@ -1,4 +1,4 @@
 {
-  "cmake.sourceDirectory": "...gui",
-  "cmake.buildDirectory": "..."
+    "cmake.sourceDirectory": "${workspaceFolder}/gui",
+    "cmake.buildDirectory": "${workspaceFolder}/gui/build"
 }

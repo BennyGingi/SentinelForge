@@ -134,3 +134,8 @@ if (WIN32)
         )
     endif()
 endif()
+
+# Unit testing (GoogleTest) for pure-logic units only — no widgets, no
+# QApplication event loop. See gui/tests/CMakeLists.txt.
+enable_testing()
+add_subdirectory(tests)
