@@ -7,6 +7,7 @@
 #include <QKeySequence>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QSettings>
 #include <QShortcut>
 #include <QSplitter>
@@ -19,6 +20,7 @@
 #include "nav/NavigationController.h"
 #include "pages/DashboardPage.h"
 #include "pages/PlaceholderPage.h"
+#include "widgets/AboutDialog.h"
 #include "widgets/DetectionTableView.h"
 #include "widgets/InspectorPane.h"
 #include "widgets/LogViewer.h"
@@ -32,6 +34,7 @@ MainWindow::MainWindow(std::unique_ptr<ITelemetrySource> source, QWidget* parent
     : QMainWindow(parent), source_(std::move(source)) {
     setWindowTitle(QStringLiteral("SentinelForge"));
     resize(1440, 900);
+    aboutDialog_ = new AboutDialog(this);
     buildUi();
     buildMenus();
     wireTelemetry();
@@ -163,11 +166,13 @@ void MainWindow::buildUi() {
 
     navigation_->addPage(QStringLiteral(":/icons/settings.svg"), QStringLiteral("Settings"),
                          [this]() {
+        auto* aboutButton = new QPushButton(QStringLiteral("About SentinelForge…"));
+        connect(aboutButton, &QPushButton::clicked, aboutDialog_, &AboutDialog::showAbout);
         return new PlaceholderPage(
             QStringLiteral("Settings"),
             QStringLiteral(
                 "Console preferences and collector connection settings will appear here."),
-            stack_);
+            stack_, aboutButton);
     });
 
     // Shortcuts (also listed under Help → Keyboard Shortcuts).
@@ -317,6 +322,8 @@ void MainWindow::buildMenus() {
                 "Pause freezes the view only. The collector keeps running;\n"
                 "the view buffer is bounded and discloses any drops."));
     });
+    helpMenu->addAction(QStringLiteral("About SentinelForge…"), this,
+                        [this]() { aboutDialog_->showAbout(); });
 }
 
 void MainWindow::keyPressEvent(QKeyEvent* event) {

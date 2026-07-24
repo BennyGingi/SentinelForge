@@ -1,0 +1,12 @@
+#pragma once
+
+// GENERATED from gui/CMakeLists.txt at configure time — do not edit by hand.
+// Include path: build/generated/AppInfo.h
+
+namespace sentinelforge::appinfo {
+
+inline constexpr const char* Version = "@PROJECT_VERSION@";
+inline constexpr const char* GitCommitHash = "@SF_GIT_HASH@";
+inline constexpr const char* ProjectUrl = "https://github.com/BennyGingi/SentinelForge";
+
+}  // namespace sentinelforge::appinfo

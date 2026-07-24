@@ -10,5 +10,7 @@
         <file alias="icons/settings.svg">@SF_ICON_DIR@/settings.svg</file>
         <file alias="icons/expand.svg">@SF_ICON_DIR@/expand.svg</file>
         <file alias="mitre/techniques.json">@SF_MITRE_DIR@/techniques.json</file>
+        <file alias="branding/sentinelforge-logo.svg">@SF_BRANDING_DIR@/sentinelforge-logo.svg</file>
+        <file alias="branding/sentinelforge-logo-small.svg">@SF_BRANDING_DIR@/sentinelforge-logo-small.svg</file>
     </qresource>
 </RCC>

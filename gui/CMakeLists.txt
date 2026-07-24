@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(SentinelForgeDesktop LANGUAGES CXX)
+project(SentinelForgeDesktop VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,6 +17,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/theme.cmake)
 set(SF_GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated)
 set(SF_ICON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/resources/icons)
 set(SF_MITRE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/resources/mitre)
+set(SF_BRANDING_DIR ${CMAKE_CURRENT_SOURCE_DIR}/resources/branding)
 file(MAKE_DIRECTORY ${SF_GENERATED_DIR})
 file(MAKE_DIRECTORY ${SF_GENERATED_DIR}/styles)
 
@@ -33,6 +34,30 @@ configure_file(
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/sentinelforge.qrc.in
     ${SF_GENERATED_DIR}/sentinelforge.qrc
+    @ONLY
+)
+
+# Git commit hash baked in at configure time (About dialog build identifier).
+# Re-run cmake to refresh it after committing new changes.
+find_package(Git QUIET)
+set(SF_GIT_HASH "unknown")
+if (Git_FOUND)
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        OUTPUT_VARIABLE SF_GIT_HASH_OUT
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+        RESULT_VARIABLE SF_GIT_HASH_RESULT
+    )
+    if (SF_GIT_HASH_RESULT EQUAL 0 AND SF_GIT_HASH_OUT)
+        set(SF_GIT_HASH ${SF_GIT_HASH_OUT})
+    endif()
+endif()
+
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/AppInfo.h.in
+    ${SF_GENERATED_DIR}/AppInfo.h
     @ONLY
 )
 
@@ -62,6 +87,7 @@ set(SF_GUI_HEADERS
     include/widgets/RuleDetailDialog.h
     include/widgets/LiveControlsBar.h
     include/widgets/CriticalToast.h
+    include/widgets/AboutDialog.h
 )
 
 set(SF_GUI_SOURCES
@@ -90,6 +116,7 @@ set(SF_GUI_SOURCES
     src/widgets/RuleDetailDialog.cpp
     src/widgets/LiveControlsBar.cpp
     src/widgets/CriticalToast.cpp
+    src/widgets/AboutDialog.cpp
 )
 
 qt_add_executable(sentinelforge_desktop
@@ -102,6 +129,12 @@ target_include_directories(sentinelforge_desktop PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${SF_GENERATED_DIR}
 )
+
+if (WIN32)
+    target_sources(sentinelforge_desktop PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/branding/app.rc
+    )
+endif()
 
 target_link_libraries(sentinelforge_desktop PRIVATE
     Qt6::Core

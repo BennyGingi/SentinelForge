@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>SentinelForge (small-size variant)</title>
+  <!-- Mechanically derived from sentinelforge-logo.svg: identical path
+       geometry and color, stroke-width raised 16 -> 44 so the hexagon
+       outline survives downscaling to 16/24/32px (16 renders at ~1px
+       on-screen at 16px and disappears; 44 renders at ~2.75px). -->
+  <path d="M128 40 L204 84 L204 172 L128 216 L52 172 L52 84 Z"
+        fill="none" stroke="#38D6C4" stroke-width="44"
+        stroke-linejoin="round"/>
+  <path d="M128 78 Q137 114 154 128 Q137 142 128 178 Q119 142 102 128 Q119 114 128 78 Z"
+        fill="#38D6C4"/>
+</svg>

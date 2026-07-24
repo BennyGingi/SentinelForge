@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QFont>
 #include <QFontDatabase>
+#include <QIcon>
 #include <QPalette>
 #include <QStyleFactory>
 
@@ -58,6 +59,7 @@ int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
     QApplication::setApplicationName(QStringLiteral("SentinelForge"));
     QApplication::setOrganizationName(QStringLiteral("SentinelForge"));
+    QApplication::setWindowIcon(QIcon(QStringLiteral(":/branding/sentinelforge-logo.svg")));
     QApplication::setStyle(QStyleFactory::create(QStringLiteral("Fusion")));
 
     qRegisterMetaType<RuleInfo>("sentinelforge::RuleInfo");

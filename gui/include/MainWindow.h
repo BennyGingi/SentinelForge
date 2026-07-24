@@ -16,6 +16,7 @@ namespace sentinelforge {
 class NavigationController;
 class DashboardPage;
 class InspectorPane;
+class AboutDialog;
 
 class MainWindow final : public QMainWindow {
     Q_OBJECT
@@ -43,6 +44,7 @@ private:
     NavigationController* navigation_ = nullptr;
     DashboardPage* dashboard_ = nullptr;
     InspectorPane* inspector_ = nullptr;
+    AboutDialog* aboutDialog_ = nullptr;
 };
 
 }  // namespace sentinelforge
