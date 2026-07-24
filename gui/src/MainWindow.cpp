@@ -46,6 +46,17 @@ MainWindow::~MainWindow() {
         QMetaObject::invokeMethod(source_.get(), "stop", Qt::BlockingQueuedConnection);
     }
     if (sourceThread_) {
+        // source_ still has thread affinity to sourceThread_ here. Deleting
+        // it via the unique_ptr's destructor (which runs on this, the UI
+        // thread) would call ~QObject() cross-thread and trip the
+        // "sendEvent: Cannot send events to objects owned by a different
+        // thread" assertion. Release ownership and hand it to Qt's own
+        // deleteLater, fired once the worker thread's event loop actually
+        // finishes — the canonical safe teardown for a moveToThread'd
+        // worker object.
+        if (source_) {
+            connect(sourceThread_, &QThread::finished, source_.release(), &QObject::deleteLater);
+        }
         sourceThread_->quit();
         sourceThread_->wait(3000);
     }
