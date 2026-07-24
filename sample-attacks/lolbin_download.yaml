@@ -22,10 +22,5 @@ events:
     parent_process: cmd.exe
     command_line: "C:\\Users\\Public\\payload.exe"
 
-expected_detections: []
-known_gap: true
-gap_reason: >
-  No rule in rules/ or sigma-rules/ matches certutil.exe or bitsadmin.exe —
-  same gap class as service_persistence.yaml, every existing rule only
-  checks powershell.exe or cmd.exe. T1105/T1218 LOLBin ingress has zero
-  detection coverage today.
+expected_detections:
+  - "Certutil Remote Payload Download"

@@ -1,0 +1,57 @@
+title: Suspicious Service Creation via sc.exe
+id: b3e91177
+status: experimental
+description: >
+  sc.exe invoked with the "create" verb — a new Windows service being
+  registered. Matches the subcommand itself rather than any specific
+  service name or binary path, so it's robust to naming/argument variation
+  and doesn't require an OR condition to catch different attacker-chosen
+  service names.
+author: SentinelForge
+falsepositives:
+  - Very common. Nearly every Windows service installer, patch/update
+    agent, and IT management tool (SCCM, Chocolatey, MSI custom actions,
+    driver installers) calls `sc.exe create` directly as part of normal
+    software installation. This rule is a starting point for
+    investigation — host, parent process, binary path, and whether the
+    service was expected on that host — not a standalone verdict.
+  - Legitimate administrators scripting service deployment via sc.exe
+    instead of PowerShell's `New-Service`.
+
+logsource:
+  category: process_creation
+  product: windows
+
+detection:
+  selection:
+    process_name: sc.exe
+    command_line|contains: "create"
+  condition: selection
+
+level: medium
+
+tags:
+  - attack.persistence
+  - attack.privilege_escalation
+  - attack.t1543.003
+
+# --- Phase 1 translator coverage note --------------------------------------
+# Single selection, single process_name, single command_line|contains — the
+# only shape collector-cpp's Phase-1 SigmaParser/SigmaTranslator execute
+# today (see SigmaParser.cpp ReadSelection: only `process_name` and
+# `command_line|contains`/`command_line` are read; every other field or
+# modifier is silently ignored, not merely unsupported-but-warned-about).
+#
+# Two things a fuller rule would want that Phase 1 cannot express:
+#   1. Excluding sc.exe binPath values pointing at Program Files / signed
+#      vendor installers to cut the false-positive rate (`command_line|
+#      contains|all`, a `not` condition, or a second selection with a
+#      `filter` — none of the `and`/`or`/`not` condition grammar exists;
+#      condition must be the literal string "selection").
+#   2. OR'ing "create" with "config" (reconfiguring an existing service's
+#      binPath is an equally valid T1543.003 persistence technique) — same
+#      multi-selection limitation documented in
+#      certutil_lolbin_download.yml, empirically confirmed there by
+#      attempting to load a `1 of selection*` rule and observing SigmaLoader
+#      reject it with "Missing required field: selection" and "Unsupported
+#      condition".

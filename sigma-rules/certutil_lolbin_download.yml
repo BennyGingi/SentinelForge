@@ -1,0 +1,65 @@
+title: Certutil Remote Payload Download
+id: a1c40021
+status: experimental
+description: >
+  certutil.exe invoked with a URL in its command line. Legitimate certutil
+  usage (cert import/export, hashing, cert-store inspection) operates on
+  local files or store names and essentially never contains a URL; the
+  presence of one is a strong behavioral indicator of certutil being abused
+  as a LOLBin to fetch a remote payload (classic `-urlcache -f <url> <out>`
+  or the less common `-verifyctl -f <url> <out>` form), rather than a
+  literal match on one specific flag.
+author: SentinelForge
+falsepositives:
+  - Legitimate certutil operations that reference a CRL/OCSP responder URL
+    during certificate validation (uncommon in day-to-day admin use, but
+    real — investigate the destination and downloaded file before acting).
+  - Automated cert-provisioning scripts that happen to pass a URL as part
+    of a store name or comment field.
+
+logsource:
+  category: process_creation
+  product: windows
+
+detection:
+  selection:
+    process_name: certutil.exe
+    command_line|contains: "http"
+  condition: selection
+
+level: medium
+
+tags:
+  - attack.command_and_control
+  - attack.t1105
+  - attack.t1218.011
+
+# --- Phase 1 translator coverage note --------------------------------------
+# The rule above is the Phase-1-executable form: one selection, one
+# process_name, one command_line|contains. It intentionally matches on the
+# URL behavior rather than enumerating flags, so it already tolerates
+# argument reordering and spacing around -urlcache/-verifyctl without
+# needing OR logic.
+#
+# A more surgical version would flag on the *flag* rather than the URL
+# generically:
+#
+#   detection:
+#     selection_urlcache:
+#       process_name: certutil.exe
+#       command_line|contains: '-urlcache'
+#     selection_verifyctl:
+#       process_name: certutil.exe
+#       command_line|contains: '-verifyctl'
+#     condition: 1 of selection*
+#
+# collector-cpp's SigmaParser only recognizes a single map named exactly
+# `selection` (SigmaParser.cpp: `if (!detection["selection"] ...)`) and only
+# reads `condition: selection` (any other value is rejected: "Unsupported
+# condition '<x>' (Phase 1 supports only 'selection')"). Named/multiple
+# selections and `1 of selection*` are not supported at all — confirmed by
+# attempting to load this exact block, which SigmaLoader rejects outright.
+# Until that lands, multi-form Sigma rules either collapse onto one
+# behavioral indicator (as above) or split into separate rule files per
+# process_name, since process_name is also single-value-exact-match only
+# (no OR across binaries, e.g. certutil.exe vs bitsadmin.exe, either).

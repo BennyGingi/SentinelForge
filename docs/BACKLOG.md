@@ -5,9 +5,9 @@ Not a duplicate of the roadmap docs — this is the working list of what's actua
 ## Now
 
 - **`CollectorTelemetrySource`** — the desktop console currently runs only against `MockTelemetrySource`. Wiring real collector output (detections, `CorrelationAlert`s, stats) into the GUI through the same `ITelemetrySource` interface is the next milestone; nothing else in the GUI roadmap is blocked on it, but it's the one that makes the console show real data.
-- **Detection coverage gaps** — the regression harness (`collector-cpp/regression/`) documents these rather than papering over them:
-  - T1543.003 (service persistence via `sc.exe`) — no rule.
-  - T1105 / T1218 (LOLBin ingress via `certutil`/`bitsadmin`) — no rule.
+- **Remaining detection coverage gaps** — T1543.003 and T1105/T1218 got real Sigma rules (`sigma-rules/sc_service_creation.yml`, `sigma-rules/certutil_lolbin_download.yml`), but each rule is intentionally narrower than the full technique, a direct consequence of the Sigma translator not supporting OR conditions (see below):
+  - `sc_service_creation.yml` matches `sc.exe create` only — reconfiguring an existing service's binary path (`sc.exe config`, an equally valid T1543.003 persistence technique) isn't covered.
+  - `certutil_lolbin_download.yml` matches certutil.exe fetching a URL — bitsadmin.exe's equivalent `/transfer` download vector isn't covered (different process_name; Phase 1's `process_name` is single-value-exact-match, so it needs its own rule file).
 
 ## Next
 
@@ -25,4 +25,4 @@ Not a duplicate of the roadmap docs — this is the working list of what's actua
 ## Known, accepted limitations
 
 - `DetectionModel`/`CorrelationModel` batch-eviction: fixed to respect the cap under a single oversized batch (was a real bug; see `SingleOversizedBatchRespectsCapacityCap` tests).
-- Sigma support is Phase 1 only: no `and`/`or`/`not`/aggregations, no field modifiers beyond `|contains`.
+- Sigma support is Phase 1 only: no `and`/`or`/`not`/aggregations, no field modifiers beyond `|contains`. Confirmed by directly attempting to load a `1 of selection*` rule — `SigmaLoader` rejects it outright with "Missing required field: selection" and "Unsupported condition." This is the concrete reason the two gap-closing rules above are each narrower than the full technique.

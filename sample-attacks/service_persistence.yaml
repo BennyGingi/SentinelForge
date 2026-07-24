@@ -21,9 +21,5 @@ events:
     parent_process: cmd.exe
     command_line: "sc.exe start WinUpdateHelper"
 
-expected_detections: []
-known_gap: true
-gap_reason: >
-  No rule in rules/ or sigma-rules/ matches sc.exe — every existing rule's
-  process_name check is powershell.exe or cmd.exe. T1543.003 service
-  creation has zero detection coverage today.
+expected_detections:
+  - "Suspicious Service Creation via sc.exe"
