@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "DetectionReport.h"
+#include "CorrelationAlert.h"
 
 #if defined(_WIN32)
 #ifndef NOMINMAX
@@ -76,6 +77,7 @@ int Application::Run() {
         exitCode = 1;
     } else {
         logger_.Configure(config->Logging());
+        correlationEngine_.Configure(config->Correlation());
         LogConfiguration(*config);
 
         const std::optional<RuleLoadResult> loadResult = LoadRules(*config);
@@ -172,6 +174,15 @@ void Application::LogConfiguration(const Configuration& config) const {
     logger_.Debug("Configuration",
                   "  monitoring.poll_interval_ms = " +
                       std::to_string(config.Monitoring().pollIntervalMs));
+    logger_.Debug("Configuration",
+                  std::string("  correlation.enabled = ") +
+                      (config.Correlation().enabled ? "true" : "false"));
+    logger_.Debug("Configuration",
+                  "  correlation.max_events = " +
+                      std::to_string(config.Correlation().maxEvents));
+    logger_.Debug("Configuration",
+                  "  correlation.time_window_seconds = " +
+                      std::to_string(config.Correlation().timeWindowSeconds));
 }
 
 std::optional<Event> Application::LoadEvent(const std::filesystem::path& sampleEventFile) {
@@ -249,12 +260,17 @@ void Application::RunDetection(const NormalizedEvent& event,
     std::vector<DetectionResult> results = detectionEngine_.Evaluate(event, rules);
     profiler_.Stop(ProfileStage::DetectionEngine);
 
+    profiler_.Start(ProfileStage::CorrelationTime);
+    std::vector<CorrelationAlert> alerts = correlationEngine_.Process(event, results);
+    profiler_.Stop(ProfileStage::CorrelationTime);
+
     const std::size_t rulesEvaluated = results.size();
     const DetectionReport report(event, rules.size(), rulesEvaluated, std::move(results));
 
     profiler_.Start(ProfileStage::ReportGeneration);
     reportPrinter_.Print(report, logger_);
-    jsonExporter_.Export(report, jsonExport, logger_);
+    reportPrinter_.PrintCorrelationAlerts(alerts, logger_);
+    jsonExporter_.Export(report, jsonExport, logger_, alerts);
     profiler_.Stop(ProfileStage::ReportGeneration);
 }
 
@@ -269,8 +285,8 @@ int Application::RunOneShot(const Configuration& config, const std::vector<Rule>
 
 int Application::RunMonitoring(const Configuration& config, std::vector<Rule> rules) {
     EventMonitor monitor(config.Monitoring(), config.JsonExport(), std::move(rules), eventParser_,
-                         eventNormalizer_, detectionEngine_, reportPrinter_, jsonExporter_, profiler_,
-                         logger_);
+                         eventNormalizer_, detectionEngine_, correlationEngine_, reportPrinter_,
+                         jsonExporter_, profiler_, logger_);
 
     g_activeMonitor = &monitor;
     InstallShutdownHandler();

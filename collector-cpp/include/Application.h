@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Configuration.h"
+#include "CorrelationEngine.h"
 #include "DetectionEngine.h"
 #include "Event.h"
 #include "EventMonitor.h"
@@ -51,6 +52,7 @@ private:
     RuleLoader ruleLoader_;
     SigmaLoader sigmaLoader_;
     DetectionEngine detectionEngine_;
+    CorrelationEngine correlationEngine_;
     ReportPrinter reportPrinter_;
     JsonExporter jsonExporter_;
 };

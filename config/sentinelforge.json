@@ -24,5 +24,10 @@
         "processed_directory": "events/processed",
         "failed_directory": "events/failed",
         "poll_interval_ms": 1000
+    },
+    "correlation": {
+        "enabled": true,
+        "max_events": 1000,
+        "time_window_seconds": 600
     }
 }

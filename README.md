@@ -81,6 +81,14 @@ service:
 `DetectionEngine` evaluates a source-agnostic `NormalizedEvent` produced by
 `EventNormalizer`, so matching logic does not depend on JSON-specific types.
 
+### Event correlation
+
+When `correlation.enabled` is true, each normalized event is also evaluated by
+`CorrelationEngine` after signature detection. The engine maintains a bounded
+rolling history and runs pluggable behavioral rules (example: Office →
+PowerShell within 60 seconds). Alerts are logged and included in JSON export
+under `correlation_alerts`.
+
 ```
 events/
     incoming/     # drop new event JSON files here

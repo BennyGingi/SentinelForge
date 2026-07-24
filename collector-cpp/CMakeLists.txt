@@ -53,6 +53,9 @@ add_library(collector_core STATIC
     src/SigmaLoader.cpp
     src/EventMonitor.cpp
     src/DetectionEngine.cpp
+    src/CorrelationAlert.cpp
+    src/CorrelationEngine.cpp
+    src/OfficeLaunchesPowerShellRule.cpp
     src/DetectionReport.cpp
     src/ReportPrinter.cpp
 )
