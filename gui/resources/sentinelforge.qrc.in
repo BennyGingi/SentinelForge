@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="styles/dark.qss">styles/dark.qss</file>
+        <file alias="icons/dashboard.svg">@SF_ICON_DIR@/dashboard.svg</file>
+        <file alias="icons/detections.svg">@SF_ICON_DIR@/detections.svg</file>
+        <file alias="icons/correlation.svg">@SF_ICON_DIR@/correlation.svg</file>
+        <file alias="icons/mitre.svg">@SF_ICON_DIR@/mitre.svg</file>
+        <file alias="icons/timeline.svg">@SF_ICON_DIR@/timeline.svg</file>
+        <file alias="icons/infrastructure.svg">@SF_ICON_DIR@/infrastructure.svg</file>
+        <file alias="icons/settings.svg">@SF_ICON_DIR@/settings.svg</file>
+        <file alias="icons/expand.svg">@SF_ICON_DIR@/expand.svg</file>
+        <file alias="mitre/techniques.json">@SF_MITRE_DIR@/techniques.json</file>
+    </qresource>
+</RCC>

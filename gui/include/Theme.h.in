@@ -1,0 +1,38 @@
+#pragma once
+
+// GENERATED from cmake/theme.cmake — do not edit by hand.
+// Include path: build/generated/Theme.h
+
+namespace sentinelforge::theme {
+
+inline constexpr const char* BgBase = "@SF_BG_BASE@";
+inline constexpr const char* BgSurface = "@SF_BG_SURFACE@";
+inline constexpr const char* BgRaised = "@SF_BG_RAISED@";
+inline constexpr const char* BgInset = "@SF_BG_INSET@";
+inline constexpr const char* BorderSubtle = "@SF_BORDER_SUBTLE@";
+inline constexpr const char* BorderStrong = "@SF_BORDER_STRONG@";
+
+inline constexpr const char* TextPrimary = "@SF_TEXT_PRIMARY@";
+inline constexpr const char* TextSecondary = "@SF_TEXT_SECONDARY@";
+inline constexpr const char* TextMuted = "@SF_TEXT_MUTED@";
+
+inline constexpr const char* Accent = "@SF_ACCENT@";
+inline constexpr const char* AccentDim = "@SF_ACCENT_DIM@";
+
+inline constexpr const char* SevCriticalFg = "@SF_SEV_CRITICAL_FG@";
+inline constexpr const char* SevCriticalBg = "@SF_SEV_CRITICAL_BG@";
+inline constexpr const char* SevHighFg = "@SF_SEV_HIGH_FG@";
+inline constexpr const char* SevHighBg = "@SF_SEV_HIGH_BG@";
+inline constexpr const char* SevMediumFg = "@SF_SEV_MEDIUM_FG@";
+inline constexpr const char* SevMediumBg = "@SF_SEV_MEDIUM_BG@";
+inline constexpr const char* SevLowFg = "@SF_SEV_LOW_FG@";
+inline constexpr const char* SevLowBg = "@SF_SEV_LOW_BG@";
+inline constexpr const char* SevInfoFg = "@SF_SEV_INFO_FG@";
+inline constexpr const char* SevInfoBg = "@SF_SEV_INFO_BG@";
+
+inline constexpr const char* StatusOk = "@SF_STATUS_OK@";
+inline constexpr const char* StatusWarn = "@SF_STATUS_WARN@";
+inline constexpr const char* StatusError = "@SF_STATUS_ERROR@";
+inline constexpr const char* StatusIdle = "@SF_STATUS_IDLE@";
+
+}  // namespace sentinelforge::theme
