@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  # Shared FetchContent cache dir for both CMake projects (googletest in
+  # both; nlohmann_json/yaml-cpp in collector-cpp) so re-runs skip the
+  # network fetch entirely on a cache hit.
+  FETCHCONTENT_BASE_DIR: ${{ github.workspace }}/.fetchcontent
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Qt 6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.7.3"
+          host: "windows"
+          target: "desktop"
+          arch: "win64_msvc2019_64"
+          cache: true
+
+      - name: Cache FetchContent downloads (googletest, nlohmann_json, yaml-cpp)
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.FETCHCONTENT_BASE_DIR }}
+          key: fetchcontent-${{ runner.os }}-${{ hashFiles('collector-cpp/CMakeLists.txt', 'collector-cpp/tests/CMakeLists.txt', 'gui/tests/CMakeLists.txt') }}
+
+      # ---- collector-cpp -----------------------------------------------
+
+      - name: Configure collector-cpp
+        run: cmake -S collector-cpp -B collector-cpp/build -G "Visual Studio 17 2022" -A x64 -DFETCHCONTENT_BASE_DIR="${{ env.FETCHCONTENT_BASE_DIR }}"
+
+      - name: Build collector-cpp
+        run: cmake --build collector-cpp/build --config Debug
+
+      - name: Test collector-cpp
+        working-directory: collector-cpp/build
+        run: ctest -C Debug --output-on-failure
+
+      - name: Verify collector-cpp test count (expect 79)
+        working-directory: collector-cpp/build
+        shell: bash
+        run: |
+          total=$(ctest -C Debug -N | grep "Total Tests:" | grep -oE '[0-9]+$')
+          echo "collector-cpp reported $total tests"
+          if [ "$total" != "79" ]; then
+            echo "::error::Expected 79 collector-cpp tests, ctest -N reported $total"
+            exit 1
+          fi
+
+      # ---- gui -----------------------------------------------------------
+      # gtest_discover_tests() runs gui_tests.exe at build time to enumerate
+      # cases, and ctest runs it again per case. Both need Qt6Core resolvable
+      # next to the exe — gui/tests/CMakeLists.txt already copies it there
+      # via a POST_BUILD step (same fix that was needed locally), so no
+      # extra PATH wiring is required here.
+
+      - name: Configure gui
+        run: cmake -S gui -B gui/build -G "Visual Studio 17 2022" -A x64 -DFETCHCONTENT_BASE_DIR="${{ env.FETCHCONTENT_BASE_DIR }}"
+
+      - name: Build gui
+        run: cmake --build gui/build --config Debug
+
+      - name: Test gui
+        working-directory: gui/build
+        run: ctest -C Debug --output-on-failure
+
+      - name: Verify gui test count (expect 31)
+        working-directory: gui/build
+        shell: bash
+        run: |
+          total=$(ctest -C Debug -N | grep "Total Tests:" | grep -oE '[0-9]+$')
+          echo "gui reported $total tests"
+          if [ "$total" != "31" ]; then
+            echo "::error::Expected 31 gui tests, ctest -N reported $total"
+            exit 1
+          fi

@@ -77,7 +77,17 @@ void CorrelationModel::appendBatch(std::span<const CorrelationAlert> batch) {
 
     const int overflow = rows_.size() + static_cast<int>(batch.size()) - capacity_;
     if (overflow > 0) {
-        evictOldest(overflow);
+        // Evict against existing rows first; if the batch alone is larger
+        // than what's left to evict, trim its oldest entries too, so the
+        // model never exceeds capacity_ regardless of a single batch's size.
+        const int evictFromExisting = qMin(overflow, rows_.size());
+        if (evictFromExisting > 0) {
+            evictOldest(evictFromExisting);
+        }
+        const int remainingOverflow = overflow - evictFromExisting;
+        if (remainingOverflow > 0) {
+            batch = batch.subspan(static_cast<std::size_t>(remainingOverflow));
+        }
     }
 
     const int first = rows_.size();

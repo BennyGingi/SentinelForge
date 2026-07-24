@@ -1,5 +1,7 @@
 # SentinelForge
 
+[![CI](https://github.com/BennyGingi/SentinelForge/actions/workflows/ci.yml/badge.svg)](https://github.com/BennyGingi/SentinelForge/actions/workflows/ci.yml)
+
 SentinelForge is a Detection Regression Testing Platform for security detections.
 
 ## Goal

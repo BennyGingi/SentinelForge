@@ -92,17 +92,14 @@ TEST(DetectionModelTest, NeverExceedsDefaultCapacityOfTenThousandUnderRealisticB
     EXPECT_EQ(model.at(model.rowCount() - 1)->id, QStringLiteral("d-10199"));
 }
 
-// Known limitation, not fixed here: appendBatch() computes eviction from
-// rows already in the model, not from the incoming batch itself. A single
-// batch larger than the cap has nothing to evict against (rows_ is smaller
-// than the overflow, or empty), so it is inserted whole and the model
-// temporarily exceeds capacity_. In production this needs a burst of more
-// than 10,000 events arriving before a single ~100ms coalescing flush to
-// trigger — outside normal operation, but a real gap in the "detection
-// model caps at 10,000 rows" contract.
-TEST(DetectionModelTest, KnownLimitation_SingleOversizedBatchBypassesCapacityCap) {
+// A single batch larger than capacity must still respect the cap: excess
+// is trimmed from the oldest end of the incoming batch itself (after any
+// existing rows are evicted), keeping only the newest capacity_ entries.
+TEST(DetectionModelTest, SingleOversizedBatchRespectsCapacityCap) {
     DetectionModel model(100);
     model.appendBatch(makeBatch(150, 0));  // one batch, larger than capacity alone
-    EXPECT_GT(model.rowCount(), 100);
-    EXPECT_EQ(model.rowCount(), 150);
+    EXPECT_EQ(model.rowCount(), 100);
+    ASSERT_NE(model.at(0), nullptr);
+    EXPECT_EQ(model.at(0)->id, QStringLiteral("d-50"));    // oldest 50 of the batch trimmed
+    EXPECT_EQ(model.at(99)->id, QStringLiteral("d-149"));  // newest entry kept
 }

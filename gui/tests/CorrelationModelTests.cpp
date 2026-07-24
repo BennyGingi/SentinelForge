@@ -87,12 +87,14 @@ TEST(CorrelationModelTest, NeverExceedsDefaultCapacityOfFiveThousandUnderRealist
     EXPECT_EQ(model.at(model.rowCount() - 1)->id, QStringLiteral("a-5199"));
 }
 
-// Same known limitation as DetectionModel (see DetectionModelTests.cpp):
-// a single batch larger than capacity has no existing rows to evict
-// against and is inserted whole, temporarily exceeding capacity_.
-TEST(CorrelationModelTest, KnownLimitation_SingleOversizedBatchBypassesCapacityCap) {
+// A single batch larger than capacity must still respect the cap: excess
+// is trimmed from the oldest end of the incoming batch itself (after any
+// existing rows are evicted), keeping only the newest capacity_ entries.
+TEST(CorrelationModelTest, SingleOversizedBatchRespectsCapacityCap) {
     CorrelationModel model(100);
     model.appendBatch(makeBatch(150, 0));
-    EXPECT_GT(model.rowCount(), 100);
-    EXPECT_EQ(model.rowCount(), 150);
+    EXPECT_EQ(model.rowCount(), 100);
+    ASSERT_NE(model.at(0), nullptr);
+    EXPECT_EQ(model.at(0)->id, QStringLiteral("a-50"));    // oldest 50 of the batch trimmed
+    EXPECT_EQ(model.at(99)->id, QStringLiteral("a-149"));  // newest entry kept
 }
