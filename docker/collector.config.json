@@ -1,0 +1,37 @@
+{
+    "rules_directory": "rules",
+    "sample_event_file": "sample-logs/process_create.json",
+    "output_directory": "output",
+    "api": {
+        "enabled": true,
+        "bind_address": "0.0.0.0",
+        "port": 8787
+    },
+    "dashboard_enabled": false,
+    "logging": {
+        "level": "INFO",
+        "console": true,
+        "file": false,
+        "path": "logs/sentinelforge.log"
+    },
+    "json_export": {
+        "enabled": true,
+        "output_file": "detections.json"
+    },
+    "sigma": {
+        "enabled": true,
+        "rules_directory": "sigma-rules"
+    },
+    "monitoring": {
+        "enabled": true,
+        "input_directory": "events/incoming",
+        "processed_directory": "events/processed",
+        "failed_directory": "events/failed",
+        "poll_interval_ms": 1000
+    },
+    "correlation": {
+        "enabled": true,
+        "max_events": 1000,
+        "time_window_seconds": 600
+    }
+}

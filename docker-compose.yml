@@ -1,0 +1,12 @@
+services:
+  collector:
+    build:
+      context: .
+      dockerfile: docker/collector.Dockerfile
+    ports:
+      - "8787:8787"
+    volumes:
+      - ./rules:/src/rules:ro
+      - ./sigma-rules:/src/sigma-rules:ro
+      - ./events/incoming:/src/events/incoming
+    restart: unless-stopped

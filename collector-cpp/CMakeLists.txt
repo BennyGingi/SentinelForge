@@ -88,17 +88,25 @@ target_link_libraries(collector_core PUBLIC
 # the fallback defaults used when it is absent, are baked in here. They are
 # resolved to absolute paths at configure time so the collector behaves the
 # same regardless of the working directory it is launched from.
+#
+# REPO_ROOT is computed with get_filename_component(... DIRECTORY) rather than
+# appending a literal "/.." -- that mode is pure lexical string manipulation
+# (no filesystem access), whereas a baked-in ".." component makes every path
+# below only resolvable if the collector-cpp/ directory itself still exists
+# next to it at runtime. It doesn't in the Docker runtime image, which ships
+# only the compiled binary.
+get_filename_component(REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}" DIRECTORY)
 target_compile_definitions(collector_core PRIVATE
-    CONFIG_FILE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../config/sentinelforge.json"
-    DEFAULT_RULES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../rules"
-    DEFAULT_SAMPLE_EVENT_FILE="${CMAKE_CURRENT_SOURCE_DIR}/../sample-logs/process_create.json"
-    DEFAULT_OUTPUT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../output"
-    DEFAULT_LOG_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../logs/sentinelforge.log"
-    DEFAULT_JSON_EXPORT_FILE="${CMAKE_CURRENT_SOURCE_DIR}/../detections.json"
-    DEFAULT_SIGMA_RULES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../sigma-rules"
-    DEFAULT_MONITOR_INPUT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../events/incoming"
-    DEFAULT_MONITOR_PROCESSED_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../events/processed"
-    DEFAULT_MONITOR_FAILED_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../events/failed"
+    CONFIG_FILE_PATH="${REPO_ROOT}/config/sentinelforge.json"
+    DEFAULT_RULES_DIR="${REPO_ROOT}/rules"
+    DEFAULT_SAMPLE_EVENT_FILE="${REPO_ROOT}/sample-logs/process_create.json"
+    DEFAULT_OUTPUT_DIR="${REPO_ROOT}/output"
+    DEFAULT_LOG_PATH="${REPO_ROOT}/logs/sentinelforge.log"
+    DEFAULT_JSON_EXPORT_FILE="${REPO_ROOT}/detections.json"
+    DEFAULT_SIGMA_RULES_DIR="${REPO_ROOT}/sigma-rules"
+    DEFAULT_MONITOR_INPUT_DIR="${REPO_ROOT}/events/incoming"
+    DEFAULT_MONITOR_PROCESSED_DIR="${REPO_ROOT}/events/processed"
+    DEFAULT_MONITOR_FAILED_DIR="${REPO_ROOT}/events/failed"
     COLLECTOR_VERSION="${PROJECT_VERSION}"
 )
 
