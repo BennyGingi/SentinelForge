@@ -8,6 +8,7 @@
 
 #include "CorrelationEngine.h"
 #include "DetectionEngine.h"
+#include "DetectionReport.h"
 #include "EventNormalizer.h"
 #include "EventParser.h"
 #include "JsonExporter.h"
@@ -15,6 +16,7 @@
 #include "PerformanceProfiler.h"
 #include "ReportPrinter.h"
 #include "Rule.h"
+#include "TelemetryStore.h"
 
 namespace sentinelforge {
 
@@ -45,7 +47,8 @@ public:
                  ReportPrinter& reportPrinter,
                  JsonExporter& jsonExporter,
                  PerformanceProfiler& profiler,
-                 Logger& logger);
+                 Logger& logger,
+                 TelemetryStore& telemetryStore);
 
     // Blocks until RequestStop() is observed after the current event (if any)
     // completes. Returns 0 on clean shutdown.
@@ -60,6 +63,8 @@ private:
     void EnsureDirectories() const;
     std::vector<std::filesystem::path> ListIncomingEvents() const;
     void ProcessEventFile(const std::filesystem::path& path);
+    void PublishToTelemetryStore(const NormalizedEvent& normalized, const DetectionReport& report,
+                                 const std::vector<CorrelationAlert>& alerts);
     void MoveEventFile(const std::filesystem::path& path,
                        const std::filesystem::path& destinationDirectory,
                        std::string_view archiveLabel);
@@ -76,6 +81,7 @@ private:
     JsonExporter& jsonExporter_;
     PerformanceProfiler& profiler_;
     Logger& logger_;
+    TelemetryStore& telemetryStore_;
     std::atomic<bool> stopRequested_{false};
 };
 

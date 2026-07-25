@@ -1,9 +1,11 @@
 #pragma once
 
 #include <filesystem>
+#include <memory>
 #include <optional>
 #include <vector>
 
+#include "ApiServer.h"
 #include "Configuration.h"
 #include "CorrelationEngine.h"
 #include "DetectionEngine.h"
@@ -19,6 +21,7 @@
 #include "Rule.h"
 #include "RuleLoader.h"
 #include "SigmaLoader.h"
+#include "TelemetryStore.h"
 
 namespace sentinelforge {
 
@@ -55,6 +58,9 @@ private:
     CorrelationEngine correlationEngine_;
     ReportPrinter reportPrinter_;
     JsonExporter jsonExporter_;
+    TelemetryStore telemetryStore_;
+    std::unique_ptr<ApiServer> apiServer_;
+    std::size_t sigmaRulesAccepted_ = 0;
 };
 
 }  // namespace sentinelforge

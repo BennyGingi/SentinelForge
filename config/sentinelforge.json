@@ -2,7 +2,11 @@
     "rules_directory": "rules",
     "sample_event_file": "sample-logs/process_create.json",
     "output_directory": "output",
-    "api_port": 8080,
+    "api": {
+        "enabled": true,
+        "bind_address": "127.0.0.1",
+        "port": 8787
+    },
     "dashboard_enabled": false,
     "logging": {
         "level": "INFO",

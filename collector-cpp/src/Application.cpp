@@ -80,11 +80,18 @@ int Application::Run() {
         correlationEngine_.Configure(config->Correlation());
         LogConfiguration(*config);
 
+        apiServer_ = std::make_unique<ApiServer>(telemetryStore_, config->Api(), logger_);
+        apiServer_->Start();
+
         const std::optional<RuleLoadResult> loadResult = LoadRules(*config);
         if (!loadResult.has_value()) {
             exitCode = 0;
         } else {
             LogRuleLoadResult(*loadResult);
+            telemetryStore_.SetRulesLoaded(
+                static_cast<int>(loadResult->Accepted().size()),
+                static_cast<int>(sigmaRulesAccepted_),
+                static_cast<int>(correlationEngine_.RuleCount()));
 
             if (config->Monitoring().enabled) {
                 exitCode = RunMonitoring(*config, loadResult->Accepted());
@@ -92,6 +99,8 @@ int Application::Run() {
                 exitCode = RunOneShot(*config, loadResult->Accepted());
             }
         }
+
+        apiServer_->Stop();
     }
 
     profiler_.Stop(ProfileStage::TotalRuntime);
@@ -144,7 +153,11 @@ void Application::LogConfiguration(const Configuration& config) const {
     logger_.Debug("Configuration",
                   "  sample_event_file = " + config.SampleEventFile().string());
     logger_.Debug("Configuration", "  output_directory  = " + config.OutputDirectory().string());
-    logger_.Debug("Configuration", "  api_port          = " + std::to_string(config.ApiPort()));
+    logger_.Debug("Configuration",
+                  std::string("  api.enabled       = ") +
+                      (config.Api().enabled ? "true" : "false"));
+    logger_.Debug("Configuration", "  api.bind_address  = " + config.Api().bindAddress);
+    logger_.Debug("Configuration", "  api.port          = " + std::to_string(config.Api().port));
     logger_.Debug("Configuration",
                   std::string("  dashboard_enabled = ") +
                       (config.DashboardEnabled() ? "true" : "false"));
@@ -219,6 +232,7 @@ std::optional<RuleLoadResult> Application::LoadRules(const Configuration& config
 
             const RuleLoadResult sigma =
                 sigmaLoader_.LoadDirectory(config.Sigma().rulesDirectory, existingNames, logger_);
+            sigmaRulesAccepted_ = sigma.Accepted().size();
             for (const auto& rule : sigma.Accepted()) {
                 accepted.push_back(rule);
             }
@@ -272,6 +286,37 @@ void Application::RunDetection(const NormalizedEvent& event,
     reportPrinter_.PrintCorrelationAlerts(alerts, logger_);
     jsonExporter_.Export(report, jsonExport, logger_, alerts);
     profiler_.Stop(ProfileStage::ReportGeneration);
+
+    const std::int64_t timestampMs = TelemetryStore::ParseIso8601ToEpochMs(event.Timestamp());
+    for (const DetectionResult& result : report.Results()) {
+        if (!result.Matched()) {
+            continue;
+        }
+        StoredDetection detection;
+        detection.timestampMs = timestampMs;
+        detection.severity = result.Severity();
+        detection.ruleName = result.RuleName();
+        detection.mitre = result.Mitre();
+        detection.processName = event.ProcessName();
+        detection.parentProcess = event.ParentProcess();
+        detection.commandLine = event.CommandLine();
+        detection.host = event.Hostname();
+        detection.user = event.Username();
+        detection.reason = result.Reason();
+        telemetryStore_.AppendDetection(std::move(detection));
+    }
+    for (const CorrelationAlert& alert : alerts) {
+        StoredCorrelationAlert stored;
+        stored.timestampMs = TelemetryStore::ParseIso8601ToEpochMs(alert.Timestamp());
+        stored.title = alert.Title();
+        stored.description = alert.Description();
+        stored.severity = alert.Severity();
+        stored.confidence = alert.Confidence();
+        stored.matchedEventCount = alert.MatchedEventCount();
+        stored.mitreTechniques = alert.MitreTechniques();
+        telemetryStore_.AppendAlert(std::move(stored));
+    }
+    telemetryStore_.RecordEventProcessed(profiler_.Elapsed(ProfileStage::DetectionEngine));
 }
 
 int Application::RunOneShot(const Configuration& config, const std::vector<Rule>& rules) {
@@ -286,7 +331,7 @@ int Application::RunOneShot(const Configuration& config, const std::vector<Rule>
 int Application::RunMonitoring(const Configuration& config, std::vector<Rule> rules) {
     EventMonitor monitor(config.Monitoring(), config.JsonExport(), std::move(rules), eventParser_,
                          eventNormalizer_, detectionEngine_, correlationEngine_, reportPrinter_,
-                         jsonExporter_, profiler_, logger_);
+                         jsonExporter_, profiler_, logger_, telemetryStore_);
 
     g_activeMonitor = &monitor;
     InstallShutdownHandler();

@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "ApiServer.h"
 #include "CorrelationEngine.h"
 #include "EventMonitor.h"
 #include "JsonExporter.h"
@@ -58,7 +59,7 @@ public:
     const MonitoringSettings& Monitoring() const;
     const CorrelationSettings& Correlation() const;
     const std::filesystem::path& OutputDirectory() const;
-    std::uint16_t ApiPort() const;
+    const ApiSettings& Api() const;
     bool DashboardEnabled() const;
 
 private:
@@ -70,7 +71,7 @@ private:
                   MonitoringSettings monitoring,
                   CorrelationSettings correlation,
                   std::filesystem::path outputDirectory,
-                  std::uint16_t apiPort,
+                  ApiSettings api,
                   bool dashboardEnabled);
 
     std::filesystem::path rulesDirectory_;
@@ -81,7 +82,7 @@ private:
     MonitoringSettings monitoring_;
     CorrelationSettings correlation_;
     std::filesystem::path outputDirectory_;
-    std::uint16_t apiPort_;
+    ApiSettings api_;
     bool dashboardEnabled_;
 };
 

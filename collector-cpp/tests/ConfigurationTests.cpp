@@ -63,7 +63,9 @@ TEST_F(ConfigurationTest, DefaultConfigurationCreation) {
     EXPECT_EQ(config.Correlation().maxEvents, 1000u) << "Default correlation max_events should be 1000";
     EXPECT_EQ(config.Correlation().timeWindowSeconds, 600u)
         << "Default correlation time window should be 600 seconds";
-    EXPECT_EQ(config.ApiPort(), static_cast<std::uint16_t>(8080)) << "Default API port should be 8080";
+    EXPECT_TRUE(config.Api().enabled) << "API should be enabled by default";
+    EXPECT_EQ(config.Api().bindAddress, "127.0.0.1") << "Default API bind address should be loopback-only";
+    EXPECT_EQ(config.Api().port, static_cast<std::uint16_t>(8787)) << "Default API port should be 8787";
     EXPECT_FALSE(config.DashboardEnabled()) << "Dashboard should be disabled by default";
     EXPECT_FALSE(config.RulesDirectory().empty()) << "Default rules directory should be set";
     EXPECT_FALSE(config.SampleEventFile().empty()) << "Default sample event file should be set";
@@ -83,8 +85,12 @@ TEST_F(ConfigurationTest, MissingConfigurationFileFallsBackToDefaults) {
         << "A missing file should yield the default console setting";
     EXPECT_EQ(config.Logging().file, defaults.Logging().file)
         << "A missing file should yield the default file setting";
-    EXPECT_EQ(config.ApiPort(), defaults.ApiPort())
+    EXPECT_EQ(config.Api().port, defaults.Api().port)
         << "A missing file should yield the default API port";
+    EXPECT_EQ(config.Api().enabled, defaults.Api().enabled)
+        << "A missing file should yield the default API enabled flag";
+    EXPECT_EQ(config.Api().bindAddress, defaults.Api().bindAddress)
+        << "A missing file should yield the default API bind address";
     EXPECT_EQ(config.DashboardEnabled(), defaults.DashboardEnabled())
         << "A missing file should yield the default dashboard setting";
     EXPECT_EQ(config.RulesDirectory(), defaults.RulesDirectory())
@@ -100,10 +106,17 @@ TEST_F(ConfigurationTest, InvalidLoggingLevelRejected) {
 }
 
 TEST_F(ConfigurationTest, InvalidApiPortRejected) {
-    const std::filesystem::path path = WriteConfig(R"({ "api_port": 70000 })");
+    const std::filesystem::path path = WriteConfig(R"({ "api": { "port": 70000 } })");
 
     EXPECT_THROW(Configuration::LoadFromFile(path, quietLogger_), ConfigurationError)
         << "An out-of-range API port must be rejected";
+}
+
+TEST_F(ConfigurationTest, InvalidApiBindAddressRejected) {
+    const std::filesystem::path path = WriteConfig(R"({ "api": { "bind_address": "" } })");
+
+    EXPECT_THROW(Configuration::LoadFromFile(path, quietLogger_), ConfigurationError)
+        << "An empty API bind address must be rejected";
 }
 
 TEST_F(ConfigurationTest, ImmutableGettersReturnExpectedValues) {
@@ -121,7 +134,7 @@ TEST_F(ConfigurationTest, ImmutableGettersReturnExpectedValues) {
         "  \"rules_directory\": \"" + rulesDir.generic_string() + "\",\n" +
         "  \"sample_event_file\": \"" + sampleFile.generic_string() + "\",\n" +
         "  \"output_directory\": \"" + outputDir.generic_string() + "\",\n" +
-        "  \"api_port\": 1234,\n" +
+        "  \"api\": { \"enabled\": false, \"bind_address\": \"0.0.0.0\", \"port\": 1234 },\n" +
         "  \"dashboard_enabled\": true,\n" +
         "  \"logging\": {\n" +
         "    \"level\": \"WARN\",\n" +
@@ -171,7 +184,9 @@ TEST_F(ConfigurationTest, ImmutableGettersReturnExpectedValues) {
     EXPECT_FALSE(config.Correlation().enabled);
     EXPECT_EQ(config.Correlation().maxEvents, 250u);
     EXPECT_EQ(config.Correlation().timeWindowSeconds, 90u);
-    EXPECT_EQ(config.ApiPort(), static_cast<std::uint16_t>(1234)) << "api_port should be read as 1234";
+    EXPECT_FALSE(config.Api().enabled) << "api.enabled should be read as false";
+    EXPECT_EQ(config.Api().bindAddress, "0.0.0.0") << "api.bind_address should be read as 0.0.0.0";
+    EXPECT_EQ(config.Api().port, static_cast<std::uint16_t>(1234)) << "api.port should be read as 1234";
     EXPECT_TRUE(config.DashboardEnabled()) << "dashboard_enabled should be read as true";
     EXPECT_EQ(config.RulesDirectory(), rulesDir) << "rules_directory getter should echo the file value";
     EXPECT_EQ(config.SampleEventFile(), sampleFile)

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(SentinelCollector CXX)
+project(SentinelCollector VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -28,6 +28,20 @@ FetchContent_Declare(
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(yaml-cpp)
+
+# Header-only, MIT. No TLS/zlib/brotli needed -- the API binds 127.0.0.1
+# only (see Configuration::ApiBindAddress), so skip OpenSSL entirely rather
+# than add a dependency this project has no use for.
+set(HTTPLIB_REQUIRE_OPENSSL OFF CACHE BOOL "" FORCE)
+set(HTTPLIB_REQUIRE_ZLIB OFF CACHE BOOL "" FORCE)
+set(HTTPLIB_REQUIRE_BROTLI OFF CACHE BOOL "" FORCE)
+set(HTTPLIB_COMPILE OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(
+    httplib
+    URL https://github.com/yhirose/cpp-httplib/archive/refs/tags/v0.15.3.tar.gz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(httplib)
 
 # All collector logic lives in a static library so it can be linked by both the
 # production executable and the unit-test executable without recompiling or
@@ -58,12 +72,15 @@ add_library(collector_core STATIC
     src/OfficeLaunchesPowerShellRule.cpp
     src/DetectionReport.cpp
     src/ReportPrinter.cpp
+    src/TelemetryStore.cpp
+    src/ApiServer.cpp
 )
 
 target_include_directories(collector_core PUBLIC include)
 target_link_libraries(collector_core PUBLIC
     nlohmann_json::nlohmann_json
     yaml-cpp::yaml-cpp
+    httplib::httplib
 )
 
 # The collector reads all runtime settings from the configuration subsystem
@@ -82,6 +99,7 @@ target_compile_definitions(collector_core PRIVATE
     DEFAULT_MONITOR_INPUT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../events/incoming"
     DEFAULT_MONITOR_PROCESSED_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../events/processed"
     DEFAULT_MONITOR_FAILED_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../events/failed"
+    COLLECTOR_VERSION="${PROJECT_VERSION}"
 )
 
 add_executable(collector src/main.cpp)

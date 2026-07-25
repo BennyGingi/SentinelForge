@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+#include "telemetry/CollectorTelemetrySource.h"
 #include "telemetry/MockTelemetrySource.h"
 #include "telemetry/TelemetryTypes.h"
 
@@ -75,8 +76,14 @@ int main(int argc, char* argv[]) {
     applyPalette(app);
     applyStylesheet(app);
 
-    // Swap this one line to connect a real collector source later.
-    auto source = std::make_unique<MockTelemetrySource>();
+    // Default: real collector data via CollectorTelemetrySource. --mock
+    // selects MockTelemetrySource instead. Either way, this is the one line
+    // BRIEF.md Part I §4 promises -- MainWindow never learns which concrete
+    // type it got.
+    const bool useMock = QApplication::arguments().contains(QStringLiteral("--mock"));
+    std::unique_ptr<ITelemetrySource> source =
+        useMock ? std::unique_ptr<ITelemetrySource>(std::make_unique<MockTelemetrySource>())
+                : std::unique_ptr<ITelemetrySource>(std::make_unique<CollectorTelemetrySource>());
 
     MainWindow window(std::move(source));
     window.show();

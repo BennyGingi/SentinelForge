@@ -23,6 +23,7 @@ add_executable(collector_tests
     EventMonitorTests.cpp
     EventNormalizerTests.cpp
     CorrelationEngineTests.cpp
+    TelemetryStoreTests.cpp
 )
 
 # Tests link the production logic library directly and drive the domain

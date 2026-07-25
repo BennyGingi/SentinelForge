@@ -21,6 +21,7 @@
 #include "PerformanceProfiler.h"
 #include "ReportPrinter.h"
 #include "Rule.h"
+#include "TelemetryStore.h"
 
 namespace sentinelforge {
 namespace {
@@ -72,7 +73,7 @@ protected:
     EventMonitor MakeMonitor() {
         return EventMonitor(settings_, jsonExport_, rules_, eventParser_, eventNormalizer_,
                             detectionEngine_, correlationEngine_, reportPrinter_, jsonExporter_,
-                            profiler_, quietLogger_);
+                            profiler_, quietLogger_, telemetryStore_);
     }
 
     void WriteIncoming(const std::string& name, const std::string& contents) {
@@ -113,6 +114,7 @@ protected:
     ReportPrinter reportPrinter_;
     JsonExporter jsonExporter_;
     PerformanceProfiler profiler_;
+    TelemetryStore telemetryStore_;
     MonitoringSettings settings_;
     JsonExportSettings jsonExport_;
     std::vector<Rule> rules_;

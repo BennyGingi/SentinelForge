@@ -201,6 +201,29 @@ inline QString iocTypeLabel(IocType type) {
     }
 }
 
+// Parsers for wire data (Issue #035 phase 2, CollectorTelemetrySource) --
+// companions to the label functions above, which only go the other way.
+// Unrecognized text falls back to the enum's lowest-severity/least-alarming
+// member rather than failing the batch over one bad field.
+inline Severity parseSeverity(const QString& text) {
+    const QString upper = text.trimmed().toUpper();
+    if (upper == QLatin1String("CRITICAL")) return Severity::Critical;
+    if (upper == QLatin1String("HIGH")) return Severity::High;
+    if (upper == QLatin1String("MEDIUM")) return Severity::Medium;
+    if (upper == QLatin1String("LOW")) return Severity::Low;
+    return Severity::Info;
+}
+
+inline LogLevel parseLogLevel(const QString& text) {
+    const QString upper = text.trimmed().toUpper();
+    if (upper == QLatin1String("TRACE")) return LogLevel::Trace;
+    if (upper == QLatin1String("DEBUG")) return LogLevel::Debug;
+    if (upper == QLatin1String("WARN") || upper == QLatin1String("WARNING")) return LogLevel::Warn;
+    if (upper == QLatin1String("ERROR")) return LogLevel::Error;
+    if (upper == QLatin1String("FATAL")) return LogLevel::Fatal;
+    return LogLevel::Info;
+}
+
 }  // namespace sentinelforge
 
 Q_DECLARE_METATYPE(sentinelforge::Severity)

@@ -30,7 +30,8 @@ EventMonitor::EventMonitor(MonitoringSettings settings,
                            ReportPrinter& reportPrinter,
                            JsonExporter& jsonExporter,
                            PerformanceProfiler& profiler,
-                           Logger& logger)
+                           Logger& logger,
+                           TelemetryStore& telemetryStore)
     : settings_(std::move(settings)),
       jsonExport_(std::move(jsonExport)),
       rules_(std::move(rules)),
@@ -41,7 +42,8 @@ EventMonitor::EventMonitor(MonitoringSettings settings,
       reportPrinter_(reportPrinter),
       jsonExporter_(jsonExporter),
       profiler_(profiler),
-      logger_(logger) {}
+      logger_(logger),
+      telemetryStore_(telemetryStore) {}
 
 void EventMonitor::RequestStop() { stopRequested_.store(true); }
 
@@ -147,11 +149,61 @@ void EventMonitor::ProcessEventFile(const std::filesystem::path& path) {
     jsonExporter_.Export(report, jsonExport_, logger_, alerts);
     profiler_.Stop(ProfileStage::JsonExportTime);
 
+    PublishToTelemetryStore(normalized, report, alerts);
+
     logger_.Info(kComponent, "Processing completed");
     MoveEventFile(path, settings_.processedDirectory, "processed");
 
     profiler_.Stop(ProfileStage::TotalProcessing);
     profiler_.LogSummary(logger_);
+}
+
+void EventMonitor::PublishToTelemetryStore(const NormalizedEvent& normalized,
+                                           const DetectionReport& report,
+                                           const std::vector<CorrelationAlert>& alerts) {
+    const std::int64_t timestampMs = TelemetryStore::ParseIso8601ToEpochMs(normalized.Timestamp());
+
+    for (const DetectionResult& result : report.Results()) {
+        if (!result.Matched()) {
+            continue;
+        }
+        StoredDetection detection;
+        detection.timestampMs = timestampMs;
+        detection.severity = result.Severity();
+        detection.ruleName = result.RuleName();
+        detection.mitre = result.Mitre();
+        detection.processName = normalized.ProcessName();
+        detection.parentProcess = normalized.ParentProcess();
+        detection.commandLine = normalized.CommandLine();
+        detection.host = normalized.Hostname();
+        detection.user = normalized.Username();
+        detection.reason = result.Reason();
+        telemetryStore_.AppendDetection(std::move(detection));
+    }
+
+    for (const CorrelationAlert& alert : alerts) {
+        StoredCorrelationAlert stored;
+        stored.timestampMs = TelemetryStore::ParseIso8601ToEpochMs(alert.Timestamp());
+        stored.title = alert.Title();
+        stored.description = alert.Description();
+        stored.severity = alert.Severity();
+        stored.confidence = alert.Confidence();
+        stored.matchedEventCount = alert.MatchedEventCount();
+        stored.mitreTechniques = alert.MitreTechniques();
+        telemetryStore_.AppendAlert(std::move(stored));
+    }
+
+    StoredLogLine line;
+    line.timestampMs = timestampMs;
+    line.level = "INFO";
+    line.component = std::string(kComponent);
+    line.message = "Processed event: " + normalized.ProcessName() + " on " +
+                   normalized.Hostname() + " (" + std::to_string(report.MatchesFound()) +
+                   " match(es), " + std::to_string(alerts.size()) + " correlation alert(s))";
+    telemetryStore_.AppendLog(std::move(line));
+
+    telemetryStore_.RecordEventProcessed(profiler_.Elapsed(ProfileStage::DetectionTime) +
+                                         profiler_.Elapsed(ProfileStage::CorrelationTime));
 }
 
 void EventMonitor::MoveEventFile(const std::filesystem::path& path,

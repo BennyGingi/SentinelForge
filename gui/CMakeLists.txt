@@ -10,7 +10,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC OFF)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets Svg)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets Svg Network)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/theme.cmake)
 
@@ -65,6 +65,7 @@ set(SF_GUI_HEADERS
     include/MainWindow.h
     include/telemetry/ITelemetrySource.h
     include/telemetry/MockTelemetrySource.h
+    include/telemetry/CollectorTelemetrySource.h
     include/models/DetectionModel.h
     include/models/CorrelationModel.h
     include/models/DetectionFilterProxy.h
@@ -94,6 +95,7 @@ set(SF_GUI_SOURCES
     src/main.cpp
     src/MainWindow.cpp
     src/telemetry/MockTelemetrySource.cpp
+    src/telemetry/CollectorTelemetrySource.cpp
     src/models/DetectionModel.cpp
     src/models/CorrelationModel.cpp
     src/models/DetectionFilterProxy.cpp
@@ -141,6 +143,7 @@ target_link_libraries(sentinelforge_desktop PRIVATE
     Qt6::Gui
     Qt6::Widgets
     Qt6::Svg
+    Qt6::Network
 )
 
 if (MSVC)

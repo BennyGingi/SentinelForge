@@ -44,7 +44,6 @@ namespace sentinelforge {
 
 namespace {
 
-constexpr std::uint16_t kDefaultApiPort = 8080;
 constexpr bool kDefaultDashboardEnabled = false;
 
 std::string ToUpper(std::string value) {
@@ -291,6 +290,52 @@ CorrelationSettings ParseCorrelationSettings(const nlohmann::json& root,
     return settings;
 }
 
+ApiSettings ParseApiSettings(const nlohmann::json& root, const ApiSettings& defaults) {
+    ApiSettings settings = defaults;
+    if (!root.contains("api")) {
+        return settings;
+    }
+
+    const auto& section = root.at("api");
+    if (!section.is_object()) {
+        throw ConfigurationError("Field 'api' must be a JSON object");
+    }
+
+    if (section.contains("enabled")) {
+        const auto& value = section.at("enabled");
+        if (!value.is_boolean()) {
+            throw ConfigurationError("Field 'api.enabled' must be a boolean");
+        }
+        settings.enabled = value.get<bool>();
+    }
+
+    if (section.contains("port")) {
+        const auto& value = section.at("port");
+        if (!value.is_number_unsigned()) {
+            throw ConfigurationError("Field 'api.port' must be a non-negative integer");
+        }
+        const std::uint64_t raw = value.get<std::uint64_t>();
+        if (raw < 1 || raw > 65535) {
+            throw ConfigurationError("Field 'api.port' must be between 1 and 65535");
+        }
+        settings.port = static_cast<std::uint16_t>(raw);
+    }
+
+    if (section.contains("bind_address")) {
+        const auto& value = section.at("bind_address");
+        if (!value.is_string()) {
+            throw ConfigurationError("Field 'api.bind_address' must be a string");
+        }
+        const std::string raw = value.get<std::string>();
+        if (raw.empty()) {
+            throw ConfigurationError("Field 'api.bind_address' must not be empty");
+        }
+        settings.bindAddress = raw;
+    }
+
+    return settings;
+}
+
 }  // namespace
 
 ConfigurationError::ConfigurationError(const std::string& message)
@@ -304,7 +349,7 @@ Configuration::Configuration(std::filesystem::path rulesDirectory,
                              MonitoringSettings monitoring,
                              CorrelationSettings correlation,
                              std::filesystem::path outputDirectory,
-                             std::uint16_t apiPort,
+                             ApiSettings api,
                              bool dashboardEnabled)
     : rulesDirectory_(std::move(rulesDirectory)),
       sampleEventFile_(std::move(sampleEventFile)),
@@ -314,7 +359,7 @@ Configuration::Configuration(std::filesystem::path rulesDirectory,
       monitoring_(std::move(monitoring)),
       correlation_(std::move(correlation)),
       outputDirectory_(std::move(outputDirectory)),
-      apiPort_(apiPort),
+      api_(std::move(api)),
       dashboardEnabled_(dashboardEnabled) {}
 
 const std::filesystem::path& Configuration::RulesDirectory() const { return rulesDirectory_; }
@@ -325,7 +370,7 @@ const SigmaSettings& Configuration::Sigma() const { return sigma_; }
 const MonitoringSettings& Configuration::Monitoring() const { return monitoring_; }
 const CorrelationSettings& Configuration::Correlation() const { return correlation_; }
 const std::filesystem::path& Configuration::OutputDirectory() const { return outputDirectory_; }
-std::uint16_t Configuration::ApiPort() const { return apiPort_; }
+const ApiSettings& Configuration::Api() const { return api_; }
 bool Configuration::DashboardEnabled() const { return dashboardEnabled_; }
 
 Configuration Configuration::Defaults() {
@@ -355,6 +400,8 @@ Configuration Configuration::Defaults() {
     correlation.maxEvents = 1000;
     correlation.timeWindowSeconds = 600;
 
+    ApiSettings api;  // enabled=true, 127.0.0.1:8787 -- see ApiServer.h
+
     return Configuration(std::filesystem::path(DEFAULT_RULES_DIR),
                          std::filesystem::path(DEFAULT_SAMPLE_EVENT_FILE),
                          std::move(logging),
@@ -363,7 +410,7 @@ Configuration Configuration::Defaults() {
                          std::move(monitoring),
                          std::move(correlation),
                          std::filesystem::path(DEFAULT_OUTPUT_DIR),
-                         kDefaultApiPort,
+                         std::move(api),
                          kDefaultDashboardEnabled);
 }
 
@@ -408,18 +455,7 @@ Configuration Configuration::LoadFromFile(const std::filesystem::path& path, con
     MonitoringSettings monitoring = ParseMonitoringSettings(json, base, defaults.Monitoring());
     CorrelationSettings correlation = ParseCorrelationSettings(json, defaults.Correlation());
 
-    std::uint16_t apiPort = defaults.ApiPort();
-    if (json.contains("api_port")) {
-        const auto& value = json.at("api_port");
-        if (!value.is_number_unsigned()) {
-            throw ConfigurationError("Field 'api_port' must be a non-negative integer");
-        }
-        const std::uint64_t raw = value.get<std::uint64_t>();
-        if (raw < 1 || raw > 65535) {
-            throw ConfigurationError("Field 'api_port' must be between 1 and 65535");
-        }
-        apiPort = static_cast<std::uint16_t>(raw);
-    }
+    ApiSettings api = ParseApiSettings(json, defaults.Api());
 
     bool dashboard = defaults.DashboardEnabled();
     if (json.contains("dashboard_enabled")) {
@@ -432,7 +468,7 @@ Configuration Configuration::LoadFromFile(const std::filesystem::path& path, con
 
     return Configuration(std::move(rulesDir), std::move(sampleEvent), std::move(logging),
                          std::move(jsonExport), std::move(sigma), std::move(monitoring),
-                         std::move(correlation), std::move(outputDir), apiPort, dashboard);
+                         std::move(correlation), std::move(outputDir), std::move(api), dashboard);
 }
 
 }  // namespace sentinelforge
