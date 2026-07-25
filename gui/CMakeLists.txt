@@ -147,9 +147,9 @@ target_link_libraries(sentinelforge_desktop PRIVATE
 )
 
 if (MSVC)
-    target_compile_options(sentinelforge_desktop PRIVATE /W4 /permissive-)
+    target_compile_options(sentinelforge_desktop PRIVATE /W4 /permissive- /WX)
 else()
-    target_compile_options(sentinelforge_desktop PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(sentinelforge_desktop PRIVATE -Wall -Wextra -Wpedantic -Werror)
 endif()
 
 set_target_properties(sentinelforge_desktop PROPERTIES
