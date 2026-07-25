@@ -10,8 +10,6 @@ CriticalToast::CriticalToast(QWidget* parent) : QFrame(parent) {
     setObjectName(QStringLiteral("CriticalToast"));
     setAttribute(Qt::WA_StyledBackground, true);
     setFrameShape(QFrame::NoFrame);
-    setWindowFlags(Qt::ToolTip | Qt::FramelessWindowHint);
-    setAttribute(Qt::WA_ShowWithoutActivating, true);
     setFixedWidth(280);
 
     auto* layout = new QVBoxLayout(this);
