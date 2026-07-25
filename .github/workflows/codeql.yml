@@ -36,10 +36,33 @@ jobs:
       # changes.
       - name: Build collector-cpp
         run: |
-          cmake -S collector-cpp -B collector-cpp/build -DCMAKE_BUILD_TYPE=Release
+          cmake -S collector-cpp -B collector-cpp/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
           cmake --build collector-cpp/build --config Release --target collector --parallel
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:cpp"
+
+      # First pass (Issue #046): reports findings, does not fail the job.
+      # Reuses this job's Linux build rather than standing up a dedicated
+      # Linux CI leg (that's its own backlog item) since compile_commands.json
+      # export needs a Makefile/Ninja generator -- the Windows CI job's
+      # Visual Studio generator can't produce one.
+      - name: Install clang-tidy
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends clang-tidy
+
+      - name: clang-tidy (non-blocking)
+        continue-on-error: true
+        run: |
+          : > clang-tidy-report.txt
+          for f in collector-cpp/src/*.cpp; do
+            clang-tidy -p collector-cpp/build "$f" 2>&1 | tee -a clang-tidy-report.txt
+          done
+
+      - name: Upload clang-tidy report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clang-tidy-report
+          path: clang-tidy-report.txt

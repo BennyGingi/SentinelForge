@@ -1,0 +1,26 @@
+# First pass (Issue #046): reports findings in CI, does not gate the build
+# yet. Deliberately broad-but-sane starting set for a modern C++17/C++20
+# codebase; narrowed here to checks unlikely to be pure noise on a project
+# this size, excluding style opinions .clang-format already owns and a
+# handful of checks that fire constantly on perfectly ordinary code
+# (magic-number and identifier-length checks, in particular).
+Checks: >
+  -*,
+  bugprone-*,
+  clang-analyzer-*,
+  cppcoreguidelines-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -readability-magic-numbers,
+  -readability-identifier-length,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-pro-type-vararg,
+  -cppcoreguidelines-avoid-non-const-global-variables,
+  -modernize-use-trailing-return-type
+
+WarningsAsErrors: ''
+HeaderFilterRegex: '(collector-cpp)/(src|include)/'
+FormatStyle: none
