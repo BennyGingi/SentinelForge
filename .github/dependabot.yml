@@ -1,0 +1,9 @@
+version: 2
+updates:
+  # Keeps action versions (actions/checkout, actions/cache, jurplel/install-qt-action,
+  # ...) current automatically -- this is what would have caught the Node 20
+  # runtime deprecation warning fixed manually in commit 0d0b75e.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
