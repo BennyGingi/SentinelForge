@@ -51,14 +51,14 @@ jobs:
         working-directory: collector-cpp/build
         run: ctest -C Debug --output-on-failure
 
-      - name: Verify collector-cpp test count (expect 79)
+      - name: Verify collector-cpp test count (expect 91)
         working-directory: collector-cpp/build
         shell: bash
         run: |
           total=$(ctest -C Debug -N | grep "Total Tests:" | grep -oE '[0-9]+$')
           echo "collector-cpp reported $total tests"
-          if [ "$total" != "79" ]; then
-            echo "::error::Expected 79 collector-cpp tests, ctest -N reported $total"
+          if [ "$total" != "91" ]; then
+            echo "::error::Expected 91 collector-cpp tests, ctest -N reported $total"
             exit 1
           fi
 
