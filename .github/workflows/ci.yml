@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Qt 6
         uses: jurplel/install-qt-action@v4
@@ -30,7 +30,7 @@ jobs:
           cache: true
 
       - name: Cache FetchContent downloads (googletest, nlohmann_json, yaml-cpp)
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ env.FETCHCONTENT_BASE_DIR }}
           key: fetchcontent-${{ runner.os }}-${{ hashFiles('collector-cpp/CMakeLists.txt', 'collector-cpp/tests/CMakeLists.txt', 'gui/tests/CMakeLists.txt') }}
