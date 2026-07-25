@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collector
+  namespace: sentinelforge
+  labels:
+    app: collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: collector
+  template:
+    metadata:
+      labels:
+        app: collector
+    spec:
+      containers:
+        - name: collector
+          image: sentinelforge-collector:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8787
+          volumeMounts:
+            - name: rules
+              mountPath: /src/rules
+            - name: sigma-rules
+              mountPath: /src/sigma-rules
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8787
+            initialDelaySeconds: 2
+            periodSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8787
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+      volumes:
+        - name: rules
+          configMap:
+            name: collector-rules
+        - name: sigma-rules
+          configMap:
+            name: collector-sigma-rules

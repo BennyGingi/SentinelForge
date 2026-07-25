@@ -1,3 +1,5 @@
 # k8s
 
-Reserved for Kubernetes manifests (BRIEF.md §2, Issue #018's planned Infrastructure page) — not yet implemented.
+Kubernetes manifests for the collector (Issue #030). See
+[`docs/architecture/kubernetes.md`](../docs/architecture/kubernetes.md) for
+deploy steps and the self-healing pod-delete demo.
