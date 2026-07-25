@@ -8,7 +8,6 @@ Not a duplicate of the roadmap docs — this is the working list of what's actua
   - **Scope:** named and multiple selections; `and`/`or`/`not`; `1 of` / `all of` with wildcards; keywords; field lists as implicit OR; the common modifiers (`startswith`, `endswith`, `re`, `all`).
   - **Priority: above #025 (threat intel) and #026 (AI assistant).** Neither is its own numbered entry in this document yet — they're the unnumbered "threat intelligence" (roadmap capability map) and "AI investigation assistant" (Later, below) items — but wherever they land, this sits above them. `README.md` names Sigma support as a core capability of the platform; supporting only flat single-selection rules means most of the public Sigma ruleset can't be loaded at all. That's a correctness gap in an advertised feature, not an enhancement request.
   - **Unblocks:** the two sub-gaps noted below — `sc.exe config` (needs OR with `create` to cover T1543.003 fully) and the bitsadmin download vector (needs its own selection alongside certutil's, or true multi-process OR, to cover T1105/T1218 fully).
-- **`CollectorTelemetrySource`** — the desktop console currently runs only against `MockTelemetrySource`. Wiring real collector output (detections, `CorrelationAlert`s, stats) into the GUI through the same `ITelemetrySource` interface is the next milestone; nothing else in the GUI roadmap is blocked on it, but it's the one that makes the console show real data.
 - **Remaining detection coverage gaps** — T1543.003 and T1105/T1218 got real Sigma rules (`sigma-rules/sc_service_creation.yml`, `sigma-rules/certutil_lolbin_download.yml`), but each rule is intentionally narrower than the full technique, a direct consequence of the Sigma translator not supporting OR conditions (see below):
   - `sc_service_creation.yml` matches `sc.exe create` only — reconfiguring an existing service's binary path (`sc.exe config`, an equally valid T1543.003 persistence technique) isn't covered.
   - `certutil_lolbin_download.yml` matches certutil.exe fetching a URL — bitsadmin.exe's equivalent `/transfer` download vector isn't covered (different process_name; Phase 1's `process_name` is single-value-exact-match, so it needs its own rule file).
@@ -21,8 +20,8 @@ Not a duplicate of the roadmap docs — this is the working list of what's actua
 
 ## Later
 
-- REST API, Prometheus/Grafana, cloud deployment.
-- `detector-python/`, `k8s/` — reserved directories, no implementation yet.
+- Prometheus/Grafana, cloud deployment. (Read-only HTTP API shipped — Issue #035, see [`docs/architecture/collector-api.md`](architecture/collector-api.md); Docker and Kubernetes shipped — Issues #029/#030, see [`docs/architecture/docker.md`](architecture/docker.md) and [`docs/architecture/kubernetes.md`](architecture/kubernetes.md).)
+- `detector-python/` — reserved directory, no implementation yet.
 - Sysmon / Linux event collection (today's `EventMonitor` is a directory-polling JSON ingester, not an OS-level sensor).
 - AI investigation assistant (#026 candidate), threat hunting workspace.
 

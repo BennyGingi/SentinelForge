@@ -27,11 +27,13 @@ fired against what a scenario declares required. See
 
 **Desktop console** (`gui/`, Qt 6) — a live operator view: detection table,
 correlation feed, MITRE technique presentation, threat scoring, search,
-pause/resume, inspector. **It currently runs entirely against
-`MockTelemetrySource`** — a `CollectorTelemetrySource` that reads real
-collector output does not exist yet; that's the next milestone (see
-[`docs/BACKLOG.md`](docs/BACKLOG.md)). Nothing in the GUI reads live
-collector data today.
+pause/resume, inspector. **It defaults to live collector data** via
+`CollectorTelemetrySource`, which polls the collector's HTTP API
+(`/detections`, `/correlations`, `/logs`, `/stats` — see
+[`docs/architecture/collector-api.md`](docs/architecture/collector-api.md))
+with automatic reconnection. Pass `--mock` to run against
+`MockTelemetrySource` instead — useful for GUI-only development without a
+running collector.
 
 ## A scenario, end to end
 
@@ -95,7 +97,7 @@ promotion output:
 
 ## Test counts
 
-- **79** collector unit tests (`collector-cpp/tests`, GoogleTest)
+- **91** collector unit tests (`collector-cpp/tests`, GoogleTest)
 - **31** GUI unit tests (`gui/tests`, GoogleTest — pure logic only: MITRE
   technique-ID validation, timestamp formatting, model batching/eviction)
 - **5** regression scenarios (`sample-attacks/`)
@@ -130,10 +132,10 @@ Desktop console (requires Qt 6 — set `CMAKE_PREFIX_PATH`, e.g.
 - C++20 (collector and desktop console)
 - Qt 6 (desktop console)
 - Docker (collector container build — see `docker/collector.Dockerfile`)
+- Kubernetes — self-healing `Deployment` + `Service` + `ConfigMap` manifests
+  in `k8s/`, see [`docs/architecture/kubernetes.md`](docs/architecture/kubernetes.md).
 - Python 3 — **planned, not yet implemented.** `detector-python/` is
   reserved for it; there's no Python code in the repo today.
-- Kubernetes — **planned, not yet implemented.** `k8s/` is reserved for it;
-  there are no manifests in the repo today.
 
 ## Roadmap
 

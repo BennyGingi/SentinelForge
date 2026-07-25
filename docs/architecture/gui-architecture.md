@@ -17,10 +17,11 @@ Desktop (pages, models, views)
 ITelemetrySource
         │
    ┌────┴────┐
-MockTelemetrySource    CollectorTelemetrySource (future)
+MockTelemetrySource    CollectorTelemetrySource (default)
+(--mock flag)
 ```
 
-**Current status.** `CollectorTelemetrySource` does not exist yet — `MockTelemetrySource` is the only `ITelemetrySource` implementation in the repo. This holds even though `collector-cpp` now has a fully implemented and tested `CorrelationEngine` (`collector-cpp/src/CorrelationEngine.cpp`, merged from Issue #017): that engine has no wiring into the GUI. `CorrelationAlert` in the desktop console is a GUI-side presentation type populated by `MockTelemetrySource`'s mock data generator, not by the collector's `CorrelationEngine`. Building `CollectorTelemetrySource` — translating real collector output (detections, `CorrelationAlert`s, stats) into batched signals on `ITelemetrySource` — remains future work.
+**Current status.** `CollectorTelemetrySource` (`gui/src/telemetry/CollectorTelemetrySource.cpp`, Issue #035) is the default `ITelemetrySource` implementation — `gui/src/main.cpp` constructs it unless the desktop console is launched with `--mock`, in which case `MockTelemetrySource` is used instead. `CollectorTelemetrySource` polls the collector's read-only HTTP API (`/detections`, `/correlations`, `/logs`, `/stats` — see [`docs/architecture/collector-api.md`](../architecture/collector-api.md)) and translates responses into the same batched signals `MockTelemetrySource` emits, including `CorrelationAlert`s sourced from the collector's real `CorrelationEngine` (`collector-cpp/src/CorrelationEngine.cpp`, merged from Issue #017) rather than generated mock data.
 
 ### Contract
 
