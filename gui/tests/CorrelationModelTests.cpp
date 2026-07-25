@@ -35,7 +35,7 @@ TEST(CorrelationModelTest, AppendBatchEmitsExactlyOneInsertSignal) {
     CorrelationModel model(100);
     int insertSignals = 0;
     QObject::connect(&model, &QAbstractItemModel::rowsInserted,
-                      [&](const QModelIndex&, int, int) { ++insertSignals; });
+                     [&](const QModelIndex&, int, int) { ++insertSignals; });
 
     model.appendBatch(makeBatch(20, 0));
 
@@ -47,7 +47,7 @@ TEST(CorrelationModelTest, MultipleBatchesEachEmitExactlyOneInsertSignal) {
     CorrelationModel model(1000);
     int insertSignals = 0;
     QObject::connect(&model, &QAbstractItemModel::rowsInserted,
-                      [&](const QModelIndex&, int, int) { ++insertSignals; });
+                     [&](const QModelIndex&, int, int) { ++insertSignals; });
 
     model.appendBatch(makeBatch(5, 0));
     model.appendBatch(makeBatch(5, 5));
@@ -60,7 +60,7 @@ TEST(CorrelationModelTest, EvictsOldestRowsAtCapacity) {
     CorrelationModel model(5);
     int removeSignals = 0;
     QObject::connect(&model, &QAbstractItemModel::rowsRemoved,
-                      [&](const QModelIndex&, int, int) { ++removeSignals; });
+                     [&](const QModelIndex&, int, int) { ++removeSignals; });
 
     model.appendBatch(makeBatch(5, 0));  // a-0..a-4, fills to capacity
     ASSERT_EQ(model.rowCount(), 5);

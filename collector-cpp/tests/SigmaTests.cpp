@@ -44,11 +44,11 @@ tags:
 )";
 
 class SigmaTest : public ::testing::Test {
-protected:
+   protected:
     void SetUp() override {
         const auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
-        tempDir_ = std::filesystem::temp_directory_path() /
-                   ("sf_sigma_" + std::string(info->name()));
+        tempDir_ =
+            std::filesystem::temp_directory_path() / ("sf_sigma_" + std::string(info->name()));
         std::error_code ec;
         std::filesystem::remove_all(tempDir_, ec);
         std::filesystem::create_directories(tempDir_);

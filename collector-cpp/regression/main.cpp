@@ -276,8 +276,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    std::cout << "\n" << passed << " passed, " << gaps << " known gaps, " << failed
-              << " failed\n";
+    std::cout << "\n" << passed << " passed, " << gaps << " known gaps, " << failed << " failed\n";
 
     return failed > 0 ? 1 : 0;
 }

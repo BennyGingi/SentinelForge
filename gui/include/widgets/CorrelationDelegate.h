@@ -10,12 +10,12 @@ namespace sentinelforge {
 
 class CorrelationDelegate final : public QStyledItemDelegate {
     Q_OBJECT
-public:
+   public:
     explicit CorrelationDelegate(QObject* parent = nullptr);
     void paint(QPainter* painter, const QStyleOptionViewItem& option,
                const QModelIndex& index) const override;
 
-private:
+   private:
     void colorsFor(Severity severity, QColor* fg, QColor* bg) const;
     QFont pillFont_;
     QFont monoFont_;

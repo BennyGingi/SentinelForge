@@ -22,14 +22,14 @@ enum class LiveViewState : quint8 {
 
 class StatusChip final : public QFrame {
     Q_OBJECT
-public:
+   public:
     explicit StatusChip(const QString& label, QWidget* parent = nullptr);
     void setValue(const QString& value);
     void setNumericValue(double value, int decimals = 0);
     void setToolTipText(const QString& tip);
     void setStatusDotColor(const QString& colorCss);
 
-private:
+   private:
     QLabel* label_ = nullptr;
     QLabel* value_ = nullptr;
     QLabel* dot_ = nullptr;
@@ -40,17 +40,17 @@ private:
 
 class StatusStrip final : public QFrame {
     Q_OBJECT
-public:
+   public:
     explicit StatusStrip(QWidget* parent = nullptr);
 
     void setLiveViewState(LiveViewState state, const QString& detail = {});
     void setThreatLevel(Severity level, const QString& tip);
 
-public slots:
+   public slots:
     void onStatsUpdated(sentinelforge::CollectorStats stats);
     void onConnectionStateChanged(sentinelforge::ConnectionState state, const QString& detail);
 
-private:
+   private:
     void applyLiveState();
 
     StatusChip* collectorChip_ = nullptr;

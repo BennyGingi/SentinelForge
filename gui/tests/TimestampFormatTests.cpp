@@ -44,7 +44,8 @@ TEST(TimestampFormatTest, RelativeSuffixUnderOneHourIsMinutes) {
 
 TEST(TimestampFormatTest, RelativeSuffixSameLocalDayIsToday) {
     const qint64 now = localMs(2024, 3, 15, 15, 0, 0, 0);
-    const qint64 ts = localMs(2024, 3, 15, 13, 0, 0, 0);  // 2h earlier, same day, past the 1h boundary
+    const qint64 ts =
+        localMs(2024, 3, 15, 13, 0, 0, 0);  // 2h earlier, same day, past the 1h boundary
     EXPECT_EQ(relativeSuffix(ts, now), QStringLiteral(" · today"));
 }
 

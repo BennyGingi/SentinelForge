@@ -36,18 +36,12 @@ struct MonitoringSettings {
 // Call RequestStop() (e.g. from a CTRL+C handler) to finish the current event
 // and exit the monitoring loop cleanly.
 class EventMonitor {
-public:
-    EventMonitor(MonitoringSettings settings,
-                 JsonExportSettings jsonExport,
-                 std::vector<Rule> rules,
-                 EventParser& eventParser,
-                 EventNormalizer& eventNormalizer,
-                 DetectionEngine& detectionEngine,
-                 CorrelationEngine& correlationEngine,
-                 ReportPrinter& reportPrinter,
-                 JsonExporter& jsonExporter,
-                 PerformanceProfiler& profiler,
-                 Logger& logger,
+   public:
+    EventMonitor(MonitoringSettings settings, JsonExportSettings jsonExport,
+                 std::vector<Rule> rules, EventParser& eventParser,
+                 EventNormalizer& eventNormalizer, DetectionEngine& detectionEngine,
+                 CorrelationEngine& correlationEngine, ReportPrinter& reportPrinter,
+                 JsonExporter& jsonExporter, PerformanceProfiler& profiler, Logger& logger,
                  TelemetryStore& telemetryStore);
 
     // Blocks until RequestStop() is observed after the current event (if any)
@@ -59,7 +53,7 @@ public:
 
     bool StopRequested() const;
 
-private:
+   private:
     void EnsureDirectories() const;
     std::vector<std::filesystem::path> ListIncomingEvents() const;
     void ProcessEventFile(const std::filesystem::path& path);

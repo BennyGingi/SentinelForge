@@ -37,8 +37,7 @@ DashboardPage::DashboardPage(QWidget* parent) : QWidget(parent) {
     connect(liveControls_, &LiveControlsBar::resumeClicked, this, [this]() { setPaused(false); });
     connect(liveOps_, &LiveOpsController::pauseStateChanged, this,
             &DashboardPage::onPauseStateChanged);
-    connect(liveOps_, &LiveOpsController::criticalDetected, toast_,
-            &CriticalToast::showDetection);
+    connect(liveOps_, &LiveOpsController::criticalDetected, toast_, &CriticalToast::showDetection);
     connect(threatScorer_, &ThreatScorer::levelChanged, this,
             [this](Severity level, const QString& detail) {
                 statusStrip_->setThreatLevel(level, detail);
@@ -71,8 +70,10 @@ DashboardPage::DashboardPage(QWidget* parent) : QWidget(parent) {
     restoreSplitters();
     root->addWidget(outerSplitter_, 1);
 
-    connect(outerSplitter_, &QSplitter::splitterMoved, this, [this](int, int) { persistSplitters(); });
-    connect(midSplitter_, &QSplitter::splitterMoved, this, [this](int, int) { persistSplitters(); });
+    connect(outerSplitter_, &QSplitter::splitterMoved, this,
+            [this](int, int) { persistSplitters(); });
+    connect(midSplitter_, &QSplitter::splitterMoved, this,
+            [this](int, int) { persistSplitters(); });
 
     connect(detections_, &DetectionTableView::detectionActivated, this,
             &DashboardPage::detectionActivated);
@@ -85,8 +86,8 @@ DashboardPage::DashboardPage(QWidget* parent) : QWidget(parent) {
 
     connect(liveOps_, &LiveOpsController::detectionsReady, this,
             [this](const QVector<Detection>& batch) {
-                detections_->model()->appendBatch(
-                    std::span<const Detection>(batch.constData(), static_cast<size_t>(batch.size())));
+                detections_->model()->appendBatch(std::span<const Detection>(
+                    batch.constData(), static_cast<size_t>(batch.size())));
                 threatScorer_->noteDetections(batch);
             });
     connect(liveOps_, &LiveOpsController::alertsReady, this,

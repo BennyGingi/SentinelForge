@@ -40,7 +40,7 @@ inline constexpr const char* TotalProcessing = "Total processing time";
 // requests are safe no-ops (Elapsed returns 0). Future stages are just
 // new string names — no profiler code changes required.
 class PerformanceProfiler {
-public:
+   public:
     void Start(std::string_view stage);
     void Stop(std::string_view stage);
 
@@ -61,7 +61,7 @@ public:
     // Emits FormatSummary() one line at a time through the structured logger.
     void LogSummary(const Logger& logger) const;
 
-private:
+   private:
     using Clock = std::chrono::steady_clock;
 
     std::unordered_map<std::string, Clock::time_point> openTimers_;

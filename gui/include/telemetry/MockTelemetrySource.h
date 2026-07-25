@@ -11,23 +11,23 @@ namespace sentinelforge {
 
 class MockTelemetrySource final : public ITelemetrySource {
     Q_OBJECT
-public:
+   public:
     explicit MockTelemetrySource(QObject* parent = nullptr);
 
-public slots:
+   public slots:
     void start() override;
     void stop() override;
     void injectBurst(int count);
 
-public:
+   public:
     Q_INVOKABLE RuleInfo ruleInfo(const QString& ruleId) const override;
 
-private slots:
+   private slots:
     void onGenerateTick();
     void onFlushTick();
     void onStatsTick();
 
-private:
+   private:
     void buildRuleCatalog();
     void emitSeedBatch();
     Detection makeDetection();

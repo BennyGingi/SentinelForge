@@ -28,8 +28,8 @@ void PerformanceProfiler::Stop(std::string_view stage) {
         return;
     }
 
-    const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() -
-                                                                               it->second);
+    const auto elapsed =
+        std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - it->second);
     openTimers_.erase(it);
 
     const auto existing = measurementIndex_.find(key);
@@ -86,8 +86,8 @@ std::string PerformanceProfiler::FormatSummary() const {
         if (IsTotalStage(sample.name)) {
             continue;
         }
-        out << std::left << std::setw(kLabelWidth) << sample.name << ": "
-            << sample.elapsed.count() << " ms\n";
+        out << std::left << std::setw(kLabelWidth) << sample.name << ": " << sample.elapsed.count()
+            << " ms\n";
     }
 
     out << "\n";

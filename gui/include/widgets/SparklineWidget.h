@@ -7,16 +7,16 @@ namespace sentinelforge {
 
 class SparklineWidget final : public QWidget {
     Q_OBJECT
-public:
+   public:
     static constexpr int kSamples = 48;
 
     explicit SparklineWidget(QWidget* parent = nullptr);
     void pushSample(float value);
 
-protected:
+   protected:
     void paintEvent(QPaintEvent* event) override;
 
-private:
+   private:
     std::array<float, kSamples> samples_{};
     int write_ = 0;
     int count_ = 0;

@@ -8,8 +8,8 @@ namespace sentinelforge {
 
 SeverityRailDelegate::SeverityRailDelegate(QObject* parent) : QStyledItemDelegate(parent) {
     pillFont_ = QFont(QStringLiteral("Inter"), 11, QFont::DemiBold);
-    pillFont_.setFamilies({QStringLiteral("Inter"), QStringLiteral("Segoe UI"),
-                           QStringLiteral("sans-serif")});
+    pillFont_.setFamilies(
+        {QStringLiteral("Inter"), QStringLiteral("Segoe UI"), QStringLiteral("sans-serif")});
     monoFont_ = QFont(QStringLiteral("Cascadia Mono"), 12);
     monoFont_.setFamilies({QStringLiteral("JetBrains Mono"), QStringLiteral("Cascadia Mono"),
                            QStringLiteral("Consolas"), QStringLiteral("monospace")});
@@ -51,8 +51,7 @@ void SeverityRailDelegate::paint(QPainter* painter, const QStyleOptionViewItem& 
     QStyleOptionViewItem opt(option);
     initStyleOption(&opt, index);
 
-    const auto severity =
-        index.data(Qt::UserRole + 1).value<Severity>();  // SeverityRole
+    const auto severity = index.data(Qt::UserRole + 1).value<Severity>();  // SeverityRole
     QColor sevFg;
     QColor sevBg;
     colorsFor(severity, &sevFg, &sevBg);

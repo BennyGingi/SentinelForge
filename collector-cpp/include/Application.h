@@ -29,20 +29,19 @@ namespace sentinelforge {
 // Loads configuration and rules once, then either runs a single sample event
 // (monitoring disabled) or delegates continuous processing to EventMonitor.
 class Application {
-public:
+   public:
     Application();
 
     int Run();
 
-private:
+   private:
     void PrintBanner() const;
     std::optional<Configuration> LoadConfiguration();
     void LogConfiguration(const Configuration& config) const;
     std::optional<Event> LoadEvent(const std::filesystem::path& sampleEventFile);
     std::optional<RuleLoadResult> LoadRules(const Configuration& config);
     void LogRuleLoadResult(const RuleLoadResult& result) const;
-    void RunDetection(const NormalizedEvent& event,
-                      const std::vector<Rule>& rules,
+    void RunDetection(const NormalizedEvent& event, const std::vector<Rule>& rules,
                       const JsonExportSettings& jsonExport);
     int RunOneShot(const Configuration& config, const std::vector<Rule>& rules);
     int RunMonitoring(const Configuration& config, std::vector<Rule> rules);

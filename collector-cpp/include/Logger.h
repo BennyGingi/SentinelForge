@@ -40,7 +40,7 @@ struct LoggingSettings {
 // Writes are serialized with a mutex so concurrent callers never interleave
 // lines. The object is neither copyable nor movable (mutex + open stream).
 class Logger {
-public:
+   public:
     Logger();
     explicit Logger(LoggingSettings settings);
 
@@ -71,7 +71,7 @@ public:
     void Error(std::string_view component, std::string_view message) const;
     void Fatal(std::string_view component, std::string_view message) const;
 
-private:
+   private:
     void Emit(LogLevel level, std::string_view component, std::string_view message) const;
     void OpenFileStream();
     void CloseFileStream();

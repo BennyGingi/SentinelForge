@@ -32,9 +32,8 @@ std::string_view LevelLabel(LogLevel level) {
 }
 
 std::string FormatTimestamp(const std::chrono::system_clock::time_point& now) {
-    const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                        now.time_since_epoch()) %
-                    1000;
+    const auto ms =
+        std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
     const std::time_t seconds = std::chrono::system_clock::to_time_t(now);
 
     std::tm local{};
@@ -45,8 +44,8 @@ std::string FormatTimestamp(const std::chrono::system_clock::time_point& now) {
 #endif
 
     std::ostringstream out;
-    out << std::put_time(&local, "%Y-%m-%d %H:%M:%S") << '.'
-        << std::setw(3) << std::setfill('0') << static_cast<int>(ms.count());
+    out << std::put_time(&local, "%Y-%m-%d %H:%M:%S") << '.' << std::setw(3) << std::setfill('0')
+        << static_cast<int>(ms.count());
     return out.str();
 }
 

@@ -14,13 +14,13 @@ class Panel;
 
 class PerformancePanel final : public QWidget {
     Q_OBJECT
-public:
+   public:
     explicit PerformancePanel(QWidget* parent = nullptr);
 
-public slots:
+   public slots:
     void onStatsUpdated(sentinelforge::CollectorStats stats);
 
-private:
+   private:
     Panel* panel_ = nullptr;
     QLabel* eventsValue_ = nullptr;
     QLabel* eventsUnit_ = nullptr;

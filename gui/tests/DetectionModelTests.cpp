@@ -35,7 +35,7 @@ TEST(DetectionModelTest, AppendBatchEmitsExactlyOneInsertSignal) {
     DetectionModel model(100);
     int insertSignals = 0;
     QObject::connect(&model, &QAbstractItemModel::rowsInserted,
-                      [&](const QModelIndex&, int, int) { ++insertSignals; });
+                     [&](const QModelIndex&, int, int) { ++insertSignals; });
 
     model.appendBatch(makeBatch(50, 0));
 
@@ -47,7 +47,7 @@ TEST(DetectionModelTest, MultipleBatchesEachEmitExactlyOneInsertSignal) {
     DetectionModel model(1000);
     int insertSignals = 0;
     QObject::connect(&model, &QAbstractItemModel::rowsInserted,
-                      [&](const QModelIndex&, int, int) { ++insertSignals; });
+                     [&](const QModelIndex&, int, int) { ++insertSignals; });
 
     model.appendBatch(makeBatch(10, 0));
     model.appendBatch(makeBatch(10, 10));
@@ -61,7 +61,7 @@ TEST(DetectionModelTest, EvictsOldestRowsAtCapacityAndReindexesLookup) {
     DetectionModel model(5);
     int removeSignals = 0;
     QObject::connect(&model, &QAbstractItemModel::rowsRemoved,
-                      [&](const QModelIndex&, int, int) { ++removeSignals; });
+                     [&](const QModelIndex&, int, int) { ++removeSignals; });
 
     model.appendBatch(makeBatch(5, 0));  // d-0..d-4, fills to capacity
     ASSERT_EQ(model.rowCount(), 5);

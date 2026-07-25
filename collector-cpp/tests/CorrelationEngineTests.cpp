@@ -26,14 +26,13 @@ NormalizedEvent MakeEvent(const std::string& processName,
                           const std::string& timestamp = "2026-07-20T14:32:07Z",
                           const std::string& hostname = "HOST-01",
                           const std::string& commandLine = "") {
-    const std::string cmd =
-        commandLine.empty() ? (processName + " -NoProfile") : commandLine;
+    const std::string cmd = commandLine.empty() ? (processName + " -NoProfile") : commandLine;
     return NormalizedEvent(timestamp, hostname, "user", "process_create", processName,
                            parentProcess, cmd, "", "", "", "", "", "", "json");
 }
 
 class CorrelationEngineTest : public ::testing::Test {
-protected:
+   protected:
     void SetUp() override {
         CorrelationSettings settings;
         settings.enabled = true;
@@ -109,8 +108,7 @@ TEST_F(CorrelationEngineTest, FailedCorrelationWhenNoOfficeParentOrHistory) {
     engine_.ClearHistory();
 
     engine_.Process(MakeEvent("chrome.exe"), {});
-    const auto alerts =
-        engine_.Process(MakeEvent("powershell.exe", "chrome.exe"), {});
+    const auto alerts = engine_.Process(MakeEvent("powershell.exe", "chrome.exe"), {});
 
     EXPECT_TRUE(alerts.empty());
 }
@@ -207,8 +205,8 @@ TEST_F(CorrelationEngineTest, DetectionRegressionStillWorksAlongsideCorrelation)
 
 TEST_F(CorrelationEngineTest, ConfigurationLoading) {
     const auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
-    const std::filesystem::path tempDir = std::filesystem::temp_directory_path() /
-                                          ("sf_corr_cfg_" + std::string(info->name()));
+    const std::filesystem::path tempDir =
+        std::filesystem::temp_directory_path() / ("sf_corr_cfg_" + std::string(info->name()));
     std::error_code ec;
     std::filesystem::remove_all(tempDir, ec);
     std::filesystem::create_directories(tempDir / "config");

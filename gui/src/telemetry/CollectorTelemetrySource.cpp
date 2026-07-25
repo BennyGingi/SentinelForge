@@ -84,7 +84,8 @@ void CollectorTelemetrySource::pollDetections(bool isTickRequest) {
             const QJsonObject obj = value.toObject();
             Detection d;
             d.id = JsonString(obj, "id");
-            d.timestampMs = static_cast<qint64>(obj.value(QStringLiteral("timestamp_ms")).toDouble());
+            d.timestampMs =
+                static_cast<qint64>(obj.value(QStringLiteral("timestamp_ms")).toDouble());
             d.severity = parseSeverity(JsonString(obj, "severity"));
             d.ruleId = JsonString(obj, "rule_name");  // no rule id in the API -- see ruleInfo()
             d.ruleName = JsonString(obj, "rule_name");
@@ -144,7 +145,8 @@ void CollectorTelemetrySource::pollCorrelations(bool isTickRequest) {
             a.description = JsonString(obj, "description");
             a.severity = parseSeverity(JsonString(obj, "severity"));
             a.confidence = obj.value(QStringLiteral("confidence")).toInt();
-            a.timestampMs = static_cast<qint64>(obj.value(QStringLiteral("timestamp_ms")).toDouble());
+            a.timestampMs =
+                static_cast<qint64>(obj.value(QStringLiteral("timestamp_ms")).toDouble());
             a.matchedEventCount = obj.value(QStringLiteral("matched_event_count")).toInt();
             const QJsonArray techniques = obj.value(QStringLiteral("mitre_techniques")).toArray();
             for (const QJsonValue& t : techniques) {
@@ -187,7 +189,8 @@ void CollectorTelemetrySource::pollLogs(bool isTickRequest) {
         for (const QJsonValue& value : items) {
             const QJsonObject obj = value.toObject();
             LogLine l;
-            l.timestampMs = static_cast<qint64>(obj.value(QStringLiteral("timestamp_ms")).toDouble());
+            l.timestampMs =
+                static_cast<qint64>(obj.value(QStringLiteral("timestamp_ms")).toDouble());
             l.level = parseLogLevel(JsonString(obj, "level"));
             l.component = JsonString(obj, "component");
             l.message = JsonString(obj, "message");
@@ -218,7 +221,8 @@ void CollectorTelemetrySource::pollStats() {
 
         const QJsonObject obj = QJsonDocument::fromJson(reply->readAll()).object();
         CollectorStats stats;
-        stats.eventsProcessed = static_cast<quint64>(obj.value(QStringLiteral("events_processed")).toDouble());
+        stats.eventsProcessed =
+            static_cast<quint64>(obj.value(QStringLiteral("events_processed")).toDouble());
         stats.detections = static_cast<quint64>(obj.value(QStringLiteral("detections")).toDouble());
         stats.correlationAlerts =
             static_cast<quint64>(obj.value(QStringLiteral("correlation_alerts")).toDouble());
@@ -237,7 +241,8 @@ void CollectorTelemetrySource::pollStats() {
         stats.sigmaRulesLoaded = sigmaLoaded;
         // No "correlation enabled" flag in the API -- correlation_rules_loaded
         // (a count) is the closest available signal.
-        stats.correlationEnabled = obj.value(QStringLiteral("correlation_rules_loaded")).toInt() > 0;
+        stats.correlationEnabled =
+            obj.value(QStringLiteral("correlation_rules_loaded")).toInt() > 0;
         // cpuPercent/memoryMb: the collector API reports no process resource
         // usage at all (out of scope for phase 1's /stats). Left at 0.0
         // rather than fabricated -- the Performance panel's CPU/Memory
@@ -294,9 +299,9 @@ void CollectorTelemetrySource::onTickSucceeded() {
     applyBackoffInterval();
     if (currentState_ != ConnectionState::Connected) {
         currentState_ = ConnectionState::Connected;
-        emit connectionStateChanged(ConnectionState::Connected,
-                                    QStringLiteral("Connected to collector at %1")
-                                        .arg(baseUrl_.toString()));
+        emit connectionStateChanged(
+            ConnectionState::Connected,
+            QStringLiteral("Connected to collector at %1").arg(baseUrl_.toString()));
     }
 }
 
@@ -314,7 +319,7 @@ void CollectorTelemetrySource::onTickFailed() {
                     .arg(baseUrl_.toString()));
         }
     } else if (currentState_ != ConnectionState::Reconnecting &&
-              currentState_ != ConnectionState::Failed) {
+               currentState_ != ConnectionState::Failed) {
         currentState_ = ConnectionState::Reconnecting;
         emit connectionStateChanged(
             ConnectionState::Reconnecting,
@@ -333,7 +338,8 @@ void CollectorTelemetrySource::applyBackoffInterval() {
     const int interval =
         consecutiveFailedTicks_ == 0
             ? kPollIntervalMs
-            : std::min(kPollIntervalMs * (1 << std::min(consecutiveFailedTicks_, 4)), kMaxBackoffMs);
+            : std::min(kPollIntervalMs * (1 << std::min(consecutiveFailedTicks_, 4)),
+                       kMaxBackoffMs);
     if (pollTimer_.interval() != interval) {
         pollTimer_.setInterval(interval);
     }

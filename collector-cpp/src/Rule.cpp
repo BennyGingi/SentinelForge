@@ -4,15 +4,9 @@
 
 namespace sentinelforge {
 
-Rule::Rule(std::string ruleName,
-           std::string processName,
-           std::string commandLineContains,
-           std::string severity,
-           std::string mitre,
-           std::string author,
-           std::string version,
-           std::string description,
-           std::string createdDate)
+Rule::Rule(std::string ruleName, std::string processName, std::string commandLineContains,
+           std::string severity, std::string mitre, std::string author, std::string version,
+           std::string description, std::string createdDate)
     : ruleName_(std::move(ruleName)),
       processName_(std::move(processName)),
       commandLineContains_(std::move(commandLineContains)),

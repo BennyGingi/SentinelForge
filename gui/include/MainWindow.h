@@ -20,15 +20,15 @@ class AboutDialog;
 
 class MainWindow final : public QMainWindow {
     Q_OBJECT
-public:
+   public:
     explicit MainWindow(std::unique_ptr<ITelemetrySource> source, QWidget* parent = nullptr);
     ~MainWindow() override;
 
-protected:
+   protected:
     void closeEvent(QCloseEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
 
-private:
+   private:
     void buildUi();
     void buildMenus();
     void wireTelemetry();

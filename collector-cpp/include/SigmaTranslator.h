@@ -8,7 +8,7 @@ namespace sentinelforge {
 // Converts a validated SigmaRule into the internal Rule model used by
 // DetectionEngine. DetectionEngine never sees Sigma types.
 class SigmaTranslator {
-public:
+   public:
     Rule Translate(const SigmaRule& sigmaRule) const;
 };
 

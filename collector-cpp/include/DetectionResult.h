@@ -8,11 +8,8 @@ namespace sentinelforge {
 // Immutable outcome of evaluating one Event against one Rule.
 // Small enough to stay header-only (no corresponding .cpp).
 class DetectionResult {
-public:
-    DetectionResult(bool matched,
-                    std::string ruleName,
-                    std::string severity,
-                    std::string mitre,
+   public:
+    DetectionResult(bool matched, std::string ruleName, std::string severity, std::string mitre,
                     std::string reason)
         : matched_(matched),
           ruleName_(std::move(ruleName)),
@@ -26,7 +23,7 @@ public:
     const std::string& Mitre() const { return mitre_; }
     const std::string& Reason() const { return reason_; }
 
-private:
+   private:
     bool matched_;
     std::string ruleName_;
     std::string severity_;

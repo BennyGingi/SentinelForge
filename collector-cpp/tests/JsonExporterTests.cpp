@@ -18,9 +18,9 @@ namespace sentinelforge {
 namespace {
 
 NormalizedEvent MakeNormalized(const std::string& processName = "powershell.exe") {
-    return NormalizedEvent("2026-07-20T14:32:07Z", "WORKSTATION-07", "CORP\\jsmith", "", processName,
-                           "explorer.exe", "powershell.exe -enc SGVsbG8=", "", "", "", "", "", "",
-                           "json");
+    return NormalizedEvent("2026-07-20T14:32:07Z", "WORKSTATION-07", "CORP\\jsmith", "",
+                           processName, "explorer.exe", "powershell.exe -enc SGVsbG8=", "", "", "",
+                           "", "", "", "json");
 }
 
 DetectionResult MakeMatch(const std::string& ruleName, const std::string& reason) {
@@ -38,7 +38,7 @@ DetectionReport MakeReport(std::vector<DetectionResult> results) {
 }
 
 class JsonExporterTest : public ::testing::Test {
-protected:
+   protected:
     void SetUp() override {
         const auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
         tempDir_ = std::filesystem::temp_directory_path() /
@@ -61,9 +61,9 @@ protected:
 };
 
 TEST_F(JsonExporterTest, ValidJsonGenerated) {
-    const DetectionReport report = MakeReport({MakeMatch(
-        "Suspicious PowerShell",
-        "process_name matched 'powershell.exe' and command_line contains '-enc'")});
+    const DetectionReport report = MakeReport(
+        {MakeMatch("Suspicious PowerShell",
+                   "process_name matched 'powershell.exe' and command_line contains '-enc'")});
 
     const nlohmann::json document = exporter_.BuildDocument(report);
 
@@ -107,9 +107,9 @@ TEST_F(JsonExporterTest, EmptyDetectionsExportedCorrectly) {
 }
 
 TEST_F(JsonExporterTest, MultipleDetectionsExported) {
-    const DetectionReport report = MakeReport(
-        {MakeMatch("Suspicious PowerShell", "reason-a"), MakeMiss("Cmd Whoami"),
-         MakeMatch("Encoded Command", "reason-b")});
+    const DetectionReport report =
+        MakeReport({MakeMatch("Suspicious PowerShell", "reason-a"), MakeMiss("Cmd Whoami"),
+                    MakeMatch("Encoded Command", "reason-b")});
 
     const nlohmann::json document = exporter_.BuildDocument(report);
 
@@ -152,9 +152,9 @@ TEST_F(JsonExporterTest, InvalidOutputPathHandledSafely) {
 }
 
 TEST_F(JsonExporterTest, ExportWritesFile) {
-    const DetectionReport report = MakeReport({MakeMatch(
-        "Suspicious PowerShell",
-        "process_name matched 'powershell.exe' and command_line contains '-enc'")});
+    const DetectionReport report = MakeReport(
+        {MakeMatch("Suspicious PowerShell",
+                   "process_name matched 'powershell.exe' and command_line contains '-enc'")});
 
     JsonExportSettings settings;
     settings.enabled = true;

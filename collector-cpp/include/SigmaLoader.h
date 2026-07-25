@@ -21,12 +21,12 @@ struct SigmaSettings {
 // internal Rule, and runs RuleValidator so accepted Rules are indistinguishable
 // from native JSON rules once they reach DetectionEngine.
 class SigmaLoader {
-public:
+   public:
     RuleLoadResult LoadDirectory(const std::filesystem::path& directory,
                                  const std::unordered_set<std::string>& existingRuleNames,
                                  const Logger& logger) const;
 
-private:
+   private:
     SigmaParser parser_;
     SigmaTranslator translator_;
     RuleValidator ruleValidator_;

@@ -12,13 +12,13 @@ namespace sentinelforge {
 // Paints the 3px severity rail and severity pill. Caches pens/fonts/colors.
 class SeverityRailDelegate final : public QStyledItemDelegate {
     Q_OBJECT
-public:
+   public:
     explicit SeverityRailDelegate(QObject* parent = nullptr);
 
     void paint(QPainter* painter, const QStyleOptionViewItem& option,
                const QModelIndex& index) const override;
 
-private:
+   private:
     void colorsFor(Severity severity, QColor* fg, QColor* bg) const;
 
     QFont pillFont_;

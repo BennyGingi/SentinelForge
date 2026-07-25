@@ -159,8 +159,8 @@ void TelemetryStore::RecordEventProcessed(std::chrono::milliseconds latency) {
     while (!recentEventTimes_.empty() && now - recentEventTimes_.front() > kEventRateWindow) {
         recentEventTimes_.pop_front();
     }
-    stats_.eventsPerSecond =
-        static_cast<double>(recentEventTimes_.size()) / static_cast<double>(kEventRateWindow.count());
+    stats_.eventsPerSecond = static_cast<double>(recentEventTimes_.size()) /
+                             static_cast<double>(kEventRateWindow.count());
 }
 
 TelemetryStats TelemetryStore::Stats() const {

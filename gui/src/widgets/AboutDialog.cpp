@@ -41,8 +41,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent) {
     root->setSpacing(10);
 
     auto* logo = new QLabel(this);
-    logo->setPixmap(
-        QIcon(QStringLiteral(":/branding/sentinelforge-logo.svg")).pixmap(64, 64));
+    logo->setPixmap(QIcon(QStringLiteral(":/branding/sentinelforge-logo.svg")).pixmap(64, 64));
     logo->setAlignment(Qt::AlignHCenter);
     root->addWidget(logo);
 
@@ -67,8 +66,8 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent) {
 
     auto* link = new QLabel(this);
     link->setObjectName(QStringLiteral("EmptyState"));
-    link->setText(QStringLiteral("<a href=\"%1\">%1</a>")
-                      .arg(QString::fromLatin1(appinfo::ProjectUrl)));
+    link->setText(
+        QStringLiteral("<a href=\"%1\">%1</a>").arg(QString::fromLatin1(appinfo::ProjectUrl)));
     link->setOpenExternalLinks(true);
     link->setAlignment(Qt::AlignHCenter);
     root->addSpacing(4);

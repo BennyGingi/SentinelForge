@@ -37,11 +37,11 @@ constexpr const char* kValidEventJson = R"({
 })";
 
 class EventMonitorTest : public ::testing::Test {
-protected:
+   protected:
     void SetUp() override {
         const auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
-        tempDir_ = std::filesystem::temp_directory_path() /
-                   ("sf_monitor_" + std::string(info->name()));
+        tempDir_ =
+            std::filesystem::temp_directory_path() / ("sf_monitor_" + std::string(info->name()));
         std::error_code ec;
         std::filesystem::remove_all(tempDir_, ec);
         incoming_ = tempDir_ / "incoming";
@@ -220,8 +220,8 @@ TEST_F(EventMonitorTest, MonitoringContinuesAfterFailure) {
     WriteIncoming("01_bad.json", "{ broken ");
     WriteIncoming("02_good.json", kValidEventJson);
 
-    ASSERT_TRUE(WaitUntil(
-        [this]() { return CountJson(failed_) == 1 && CountJson(processed_) == 1; }));
+    ASSERT_TRUE(
+        WaitUntil([this]() { return CountJson(failed_) == 1 && CountJson(processed_) == 1; }));
     monitor.RequestStop();
     worker.join();
 

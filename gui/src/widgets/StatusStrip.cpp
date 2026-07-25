@@ -72,8 +72,7 @@ void StatusChip::setToolTipText(const QString& tip) { setToolTip(tip); }
 
 void StatusChip::setStatusDotColor(const QString& colorCss) {
     dot_->show();
-    dot_->setStyleSheet(
-        QStringLiteral("background-color: %1; border-radius: 4px;").arg(colorCss));
+    dot_->setStyleSheet(QStringLiteral("background-color: %1; border-radius: 4px;").arg(colorCss));
 }
 
 StatusStrip::StatusStrip(QWidget* parent) : QFrame(parent) {
@@ -169,12 +168,11 @@ void StatusStrip::applyLiveState() {
 void StatusStrip::onStatsUpdated(CollectorStats stats) {
     lastUpdateMs_ = QDateTime::currentMSecsSinceEpoch();
     rulesChip_->setNumericValue(stats.rulesLoaded + stats.sigmaRulesLoaded, 0);
-    rulesChip_->setToolTipText(
-        QStringLiteral("Native: %1\nSigma: %2\nCorrelation: %3")
-            .arg(stats.rulesLoaded)
-            .arg(stats.sigmaRulesLoaded)
-            .arg(stats.correlationEnabled ? QStringLiteral("enabled")
-                                          : QStringLiteral("disabled")));
+    rulesChip_->setToolTipText(QStringLiteral("Native: %1\nSigma: %2\nCorrelation: %3")
+                                   .arg(stats.rulesLoaded)
+                                   .arg(stats.sigmaRulesLoaded)
+                                   .arg(stats.correlationEnabled ? QStringLiteral("enabled")
+                                                                 : QStringLiteral("disabled")));
     epsChip_->setNumericValue(stats.eventsPerSecond, 1);
     eventsChip_->setNumericValue(static_cast<double>(stats.eventsProcessed), 0);
     detectionsChip_->setNumericValue(static_cast<double>(stats.detections), 0);

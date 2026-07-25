@@ -9,18 +9,18 @@ namespace sentinelforge {
 
 class LiveControlsBar final : public QFrame {
     Q_OBJECT
-public:
+   public:
     explicit LiveControlsBar(QWidget* parent = nullptr);
 
     void setPaused(bool paused);
     void setBufferStats(int buffered, int dropped);
 
-signals:
+   signals:
     void liveClicked();
     void pauseClicked();
     void resumeClicked();
 
-private:
+   private:
     void syncButtons();
 
     QPushButton* liveButton_ = nullptr;

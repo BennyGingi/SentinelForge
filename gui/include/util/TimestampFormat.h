@@ -49,7 +49,8 @@ inline QString relativeSuffix(qint64 timestampMs, qint64 nowMs) {
     if (ageMs < 3'600'000) {
         return QStringLiteral(" · %1 min ago").arg(ageMs / 60'000);
     }
-    const QDateTime local = QDateTime::fromMSecsSinceEpoch(timestampMs, QTimeZone::UTC).toLocalTime();
+    const QDateTime local =
+        QDateTime::fromMSecsSinceEpoch(timestampMs, QTimeZone::UTC).toLocalTime();
     const QDate today = QDateTime::fromMSecsSinceEpoch(nowMs, QTimeZone::UTC).toLocalTime().date();
     if (local.date() == today) {
         return QStringLiteral(" · today");

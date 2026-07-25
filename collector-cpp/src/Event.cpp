@@ -4,12 +4,8 @@
 
 namespace sentinelforge {
 
-Event::Event(std::string timestamp,
-             std::string hostname,
-             std::string username,
-             std::string processName,
-             std::string parentProcess,
-             std::string commandLine,
+Event::Event(std::string timestamp, std::string hostname, std::string username,
+             std::string processName, std::string parentProcess, std::string commandLine,
              std::uint32_t pid)
     : timestamp_(std::move(timestamp)),
       hostname_(std::move(hostname)),

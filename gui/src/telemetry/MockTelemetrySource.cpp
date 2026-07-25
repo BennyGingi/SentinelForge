@@ -30,14 +30,15 @@ constexpr SeedTemplate kSeedTemplates[] = {
     {Severity::High, "SF-T1059-001", "Encoded PowerShell command", "powershell.exe", "T1059.001",
      "powershell.exe -NoP -W Hidden -enc SGVsbG8gV29ybGQ=",
      "PowerShell launched with -enc and window style Hidden.",
-     "Capture script block logs; review encoded payload; check lateral movement.",
-     "explorer.exe"},
+     "Capture script block logs; review encoded payload; check lateral movement.", "explorer.exe"},
     {Severity::High, "SF-T1053-005", "Scheduled task created", "schtasks.exe", "T1053.005",
-     "schtasks.exe /Create /TN \\Microsoft\\Windows\\Updater /TR C:\\Users\\Public\\upd.exe /SC ONLOGON",
+     "schtasks.exe /Create /TN \\Microsoft\\Windows\\Updater /TR C:\\Users\\Public\\upd.exe /SC "
+     "ONLOGON",
      "New scheduled task written outside approved baselines.",
      "Disable the task, quarantine payload, review creator account.", "powershell.exe"},
     {Severity::Medium, "SF-T1547-001", "Registry run key modified", "reg.exe", "T1547.001",
-     "reg.exe add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v Updater /d C:\\Users\\Public\\upd.exe",
+     "reg.exe add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v Updater /d "
+     "C:\\Users\\Public\\upd.exe",
      "User-level Run key modified with a writable path payload.",
      "Remove Run key value and scan user profile for dropper.", "cmd.exe"},
     {Severity::Medium, "SF-T1543-003", "Remote service created", "sc.exe", "T1543.003",
@@ -45,14 +46,11 @@ constexpr SeedTemplate kSeedTemplates[] = {
      "Remote service creation targeting a peer workstation.",
      "Stop/delete service, collect binary, review SMB auth source.", "cmd.exe"},
     {Severity::Low, "SF-T1135", "Net share enumeration", "net.exe", "T1135",
-     "net.exe view \\\\dc01",
-     "Network share discovery against a domain controller.",
+     "net.exe view \\\\dc01", "Network share discovery against a domain controller.",
      "Correlate with account; unusual share enum may precede staging.", "powershell.exe"},
     {Severity::Info, "SF-PROC-CREATE", "Process created", "svchost.exe", "",
-     "svchost.exe -k netsvcs -p -s Winmgmt",
-     "Standard process creation telemetry.",
-     "No action required unless correlated with higher-severity activity.",
-     "services.exe"},
+     "svchost.exe -k netsvcs -p -s Winmgmt", "Standard process creation telemetry.",
+     "No action required unless correlated with higher-severity activity.", "services.exe"},
 };
 
 struct AlertTemplate {
@@ -111,32 +109,32 @@ void MockTelemetrySource::buildRuleCatalog() {
         RuleInfo info;
         info.ruleId = QString::fromLatin1(tmpl.ruleId);
         info.name = QString::fromLatin1(tmpl.rule);
-        info.description = QStringLiteral(
-            "Detects suspicious activity matching '%1' based on process and command-line "
-            "telemetry.")
-                               .arg(info.name);
+        info.description =
+            QStringLiteral(
+                "Detects suspicious activity matching '%1' based on process and command-line "
+                "telemetry.")
+                .arg(info.name);
         info.author = QStringLiteral("SentinelForge Detection Team");
         info.version = QStringLiteral("1.2.0");
         info.sigmaSource = QStringLiteral("rules/windows/%1.yml").arg(info.ruleId.toLower());
         info.severity = tmpl.severity;
         info.techniqueId = QString::fromLatin1(tmpl.technique);
-        info.logicSummary = QStringLiteral(
-            "Match process Image endswith '%1' with command-line indicators from the rule "
-            "selection.")
-                                .arg(QString::fromLatin1(tmpl.process));
-        info.knownFalsePositives =
-            QStringLiteral("Legitimate admin tooling, EDR sensors, and software updates may "
-                           "resemble this pattern on managed endpoints.");
-        info.investigationNotes =
-            QStringLiteral("Confirm parent process integrity, review recent logons on the host, "
-                           "and pivot to related detections before containment.");
+        info.logicSummary =
+            QStringLiteral(
+                "Match process Image endswith '%1' with command-line indicators from the rule "
+                "selection.")
+                .arg(QString::fromLatin1(tmpl.process));
+        info.knownFalsePositives = QStringLiteral(
+            "Legitimate admin tooling, EDR sensors, and software updates may "
+            "resemble this pattern on managed endpoints.");
+        info.investigationNotes = QStringLiteral(
+            "Confirm parent process integrity, review recent logons on the host, "
+            "and pivot to related detections before containment.");
         rules_.insert(info.ruleId, info);
     }
 }
 
-RuleInfo MockTelemetrySource::ruleInfo(const QString& ruleId) const {
-    return rules_.value(ruleId);
-}
+RuleInfo MockTelemetrySource::ruleInfo(const QString& ruleId) const { return rules_.value(ruleId); }
 
 void MockTelemetrySource::start() {
     if (running_) {
@@ -207,8 +205,8 @@ void MockTelemetrySource::injectBurst(int count) {
         ++stats_.detections;
         ++stats_.eventsProcessed;
     }
-    pendingLogs_.push_back(makeLogLine(
-        LogLevel::Warn, QStringLiteral("Injected burst of %1 detections").arg(count)));
+    pendingLogs_.push_back(
+        makeLogLine(LogLevel::Warn, QStringLiteral("Injected burst of %1 detections").arg(count)));
 }
 
 void MockTelemetrySource::onGenerateTick() {
@@ -227,7 +225,8 @@ void MockTelemetrySource::onGenerateTick() {
     }
 
     if (QRandomGenerator::global()->bounded(100) < 40) {
-        pendingLogs_.push_back(makeLogLine(LogLevel::Info, QStringLiteral("Processed event batch")));
+        pendingLogs_.push_back(
+            makeLogLine(LogLevel::Info, QStringLiteral("Processed event batch")));
     }
 }
 
@@ -323,12 +322,13 @@ Detection MockTelemetrySource::makeSeedDetection(int index, const QDateTime& whe
         {IocType::User, d.user},
     };
     if (d.commandLine.contains(QLatin1String("C:\\"), Qt::CaseInsensitive)) {
-        d.iocs.push_back({IocType::Hash, QStringLiteral("a3f2c91e8b7d4e6f0192837465abcdef01928374")});
+        d.iocs.push_back(
+            {IocType::Hash, QStringLiteral("a3f2c91e8b7d4e6f0192837465abcdef01928374")});
     }
     if (severity >= Severity::High) {
-        d.iocs.push_back({IocType::Ip, QStringLiteral("10.20.%1.%2")
-                                           .arg(4 + (index % 3))
-                                           .arg(10 + (index % 40))});
+        d.iocs.push_back(
+            {IocType::Ip,
+             QStringLiteral("10.20.%1.%2").arg(4 + (index % 3)).arg(10 + (index % 40))});
     }
 
     // Link to a few prior seeded ids when available (collector-owned relatedness).

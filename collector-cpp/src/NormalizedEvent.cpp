@@ -4,20 +4,12 @@
 
 namespace sentinelforge {
 
-NormalizedEvent::NormalizedEvent(std::string timestamp,
-                                 std::string hostname,
-                                 std::string username,
-                                 std::string eventType,
-                                 std::string processName,
-                                 std::string parentProcess,
-                                 std::string commandLine,
-                                 std::string filePath,
-                                 std::string hash,
-                                 std::string sourceIp,
-                                 std::string destinationIp,
-                                 std::string destinationPort,
-                                 std::string severity,
-                                 std::string provider)
+NormalizedEvent::NormalizedEvent(std::string timestamp, std::string hostname, std::string username,
+                                 std::string eventType, std::string processName,
+                                 std::string parentProcess, std::string commandLine,
+                                 std::string filePath, std::string hash, std::string sourceIp,
+                                 std::string destinationIp, std::string destinationPort,
+                                 std::string severity, std::string provider)
     : timestamp_(std::move(timestamp)),
       hostname_(std::move(hostname)),
       username_(std::move(username)),

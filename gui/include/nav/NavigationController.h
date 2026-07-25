@@ -13,7 +13,7 @@ namespace sentinelforge {
 
 class NavigationController final : public QObject {
     Q_OBJECT
-public:
+   public:
     using PageFactory = std::function<QWidget*()>;
 
     NavigationController(QFrame* rail, QStackedWidget* stack, QObject* parent = nullptr);
@@ -27,11 +27,11 @@ public:
     void setCurrentIndex(int index);
     int currentIndex() const;
 
-signals:
+   signals:
     void pageChanged(int index);
     void collapsedChanged(bool collapsed);
 
-private:
+   private:
     void ensurePageBuilt(int index);
     void refreshButtonPresentation();
     QIcon tintedIcon(const QString& path, const QColor& color) const;

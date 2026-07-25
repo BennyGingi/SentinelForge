@@ -10,7 +10,7 @@ namespace sentinelforge {
 // Throws std::runtime_error with a descriptive message on any failure:
 // unreadable file, malformed JSON, or missing/invalid required fields.
 class EventParser {
-public:
+   public:
     Event ParseFile(const std::filesystem::path& path) const;
 };
 

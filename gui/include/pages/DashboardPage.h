@@ -22,7 +22,7 @@ class CriticalToast;
 
 class DashboardPage final : public QWidget {
     Q_OBJECT
-public:
+   public:
     explicit DashboardPage(QWidget* parent = nullptr);
 
     DetectionModel* detectionModel() const;
@@ -35,20 +35,20 @@ public:
     void togglePaused();
     bool isPaused() const;
 
-signals:
+   signals:
     void detectionActivated(sentinelforge::Detection detection);
     void alertActivated(sentinelforge::CorrelationAlert alert);
     void openRuleRequested(QString ruleId);
     void openMitreRequested(QString techniqueId);
 
-public slots:
+   public slots:
     void onDetections(const QVector<sentinelforge::Detection>& batch);
     void onAlerts(const QVector<sentinelforge::CorrelationAlert>& batch);
     void onLogs(const QVector<sentinelforge::LogLine>& batch);
     void onStats(sentinelforge::CollectorStats stats);
     void onConnectionState(sentinelforge::ConnectionState state, const QString& detail);
 
-private:
+   private:
     void persistSplitters();
     void restoreSplitters();
     void onPauseStateChanged(bool paused, int buffered, int dropped);

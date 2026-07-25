@@ -35,8 +35,7 @@ EventMonitor* g_activeMonitor = nullptr;
 
 #if defined(_WIN32)
 BOOL WINAPI ConsoleCtrlHandler(DWORD ctrlType) {
-    if (ctrlType == CTRL_C_EVENT || ctrlType == CTRL_BREAK_EVENT ||
-        ctrlType == CTRL_CLOSE_EVENT) {
+    if (ctrlType == CTRL_C_EVENT || ctrlType == CTRL_BREAK_EVENT || ctrlType == CTRL_CLOSE_EVENT) {
         if (g_activeMonitor != nullptr) {
             g_activeMonitor->RequestStop();
         }
@@ -63,9 +62,7 @@ void InstallShutdownHandler() {
 
 }  // namespace
 
-Application::Application() {
-    PrintBanner();
-}
+Application::Application() { PrintBanner(); }
 
 int Application::Run() {
     profiler_.Start(ProfileStage::TotalRuntime);
@@ -88,10 +85,9 @@ int Application::Run() {
             exitCode = 0;
         } else {
             LogRuleLoadResult(*loadResult);
-            telemetryStore_.SetRulesLoaded(
-                static_cast<int>(loadResult->Accepted().size()),
-                static_cast<int>(sigmaRulesAccepted_),
-                static_cast<int>(correlationEngine_.RuleCount()));
+            telemetryStore_.SetRulesLoaded(static_cast<int>(loadResult->Accepted().size()),
+                                           static_cast<int>(sigmaRulesAccepted_),
+                                           static_cast<int>(correlationEngine_.RuleCount()));
 
             if (config->Monitoring().enabled) {
                 exitCode = RunMonitoring(*config, loadResult->Accepted());
@@ -150,52 +146,40 @@ void Application::LogConfiguration(const Configuration& config) const {
 
     logger_.Debug("Configuration", "Configuration loaded:");
     logger_.Debug("Configuration", "  rules_directory   = " + config.RulesDirectory().string());
-    logger_.Debug("Configuration",
-                  "  sample_event_file = " + config.SampleEventFile().string());
+    logger_.Debug("Configuration", "  sample_event_file = " + config.SampleEventFile().string());
     logger_.Debug("Configuration", "  output_directory  = " + config.OutputDirectory().string());
-    logger_.Debug("Configuration",
-                  std::string("  api.enabled       = ") +
-                      (config.Api().enabled ? "true" : "false"));
+    logger_.Debug("Configuration", std::string("  api.enabled       = ") +
+                                       (config.Api().enabled ? "true" : "false"));
     logger_.Debug("Configuration", "  api.bind_address  = " + config.Api().bindAddress);
     logger_.Debug("Configuration", "  api.port          = " + std::to_string(config.Api().port));
-    logger_.Debug("Configuration",
-                  std::string("  dashboard_enabled = ") +
-                      (config.DashboardEnabled() ? "true" : "false"));
+    logger_.Debug("Configuration", std::string("  dashboard_enabled = ") +
+                                       (config.DashboardEnabled() ? "true" : "false"));
     logger_.Debug("Configuration",
                   std::string("  logging.level     = ") + levelName(config.Logging().level));
-    logger_.Debug("Configuration",
-                  std::string("  json_export.enabled = ") +
-                      (config.JsonExport().enabled ? "true" : "false"));
+    logger_.Debug("Configuration", std::string("  json_export.enabled = ") +
+                                       (config.JsonExport().enabled ? "true" : "false"));
     logger_.Debug("Configuration",
                   "  json_export.output_file = " + config.JsonExport().outputFile.string());
     logger_.Debug("Configuration",
                   std::string("  sigma.enabled = ") + (config.Sigma().enabled ? "true" : "false"));
     logger_.Debug("Configuration",
                   "  sigma.rules_directory = " + config.Sigma().rulesDirectory.string());
+    logger_.Debug("Configuration", std::string("  monitoring.enabled = ") +
+                                       (config.Monitoring().enabled ? "true" : "false"));
     logger_.Debug("Configuration",
-                  std::string("  monitoring.enabled = ") +
-                      (config.Monitoring().enabled ? "true" : "false"));
+                  "  monitoring.input_directory = " + config.Monitoring().inputDirectory.string());
+    logger_.Debug("Configuration", "  monitoring.processed_directory = " +
+                                       config.Monitoring().processedDirectory.string());
+    logger_.Debug("Configuration", "  monitoring.failed_directory = " +
+                                       config.Monitoring().failedDirectory.string());
+    logger_.Debug("Configuration", "  monitoring.poll_interval_ms = " +
+                                       std::to_string(config.Monitoring().pollIntervalMs));
+    logger_.Debug("Configuration", std::string("  correlation.enabled = ") +
+                                       (config.Correlation().enabled ? "true" : "false"));
     logger_.Debug("Configuration",
-                  "  monitoring.input_directory = " +
-                      config.Monitoring().inputDirectory.string());
-    logger_.Debug("Configuration",
-                  "  monitoring.processed_directory = " +
-                      config.Monitoring().processedDirectory.string());
-    logger_.Debug("Configuration",
-                  "  monitoring.failed_directory = " +
-                      config.Monitoring().failedDirectory.string());
-    logger_.Debug("Configuration",
-                  "  monitoring.poll_interval_ms = " +
-                      std::to_string(config.Monitoring().pollIntervalMs));
-    logger_.Debug("Configuration",
-                  std::string("  correlation.enabled = ") +
-                      (config.Correlation().enabled ? "true" : "false"));
-    logger_.Debug("Configuration",
-                  "  correlation.max_events = " +
-                      std::to_string(config.Correlation().maxEvents));
-    logger_.Debug("Configuration",
-                  "  correlation.time_window_seconds = " +
-                      std::to_string(config.Correlation().timeWindowSeconds));
+                  "  correlation.max_events = " + std::to_string(config.Correlation().maxEvents));
+    logger_.Debug("Configuration", "  correlation.time_window_seconds = " +
+                                       std::to_string(config.Correlation().timeWindowSeconds));
 }
 
 std::optional<Event> Application::LoadEvent(const std::filesystem::path& sampleEventFile) {
@@ -267,8 +251,7 @@ void Application::LogRuleLoadResult(const RuleLoadResult& result) const {
     }
 }
 
-void Application::RunDetection(const NormalizedEvent& event,
-                               const std::vector<Rule>& rules,
+void Application::RunDetection(const NormalizedEvent& event, const std::vector<Rule>& rules,
                                const JsonExportSettings& jsonExport) {
     profiler_.Start(ProfileStage::DetectionEngine);
     std::vector<DetectionResult> results = detectionEngine_.Evaluate(event, rules);
@@ -348,8 +331,6 @@ int Application::RunMonitoring(const Configuration& config, std::vector<Rule> ru
     return exitCode;
 }
 
-void Application::PrintPerformanceSummary() const {
-    profiler_.LogSummary(logger_);
-}
+void Application::PrintPerformanceSummary() const { profiler_.LogSummary(logger_); }
 
 }  // namespace sentinelforge

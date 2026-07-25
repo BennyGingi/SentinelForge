@@ -73,13 +73,17 @@ nlohmann::json PageToJson(const CursorPage<T>& page) {
     for (const auto& item : page.items) {
         items.push_back(ToJson(item));
     }
-    return nlohmann::json{{"cursor", page.cursor}, {"more", page.more}, {"items", std::move(items)}};
+    return nlohmann::json{
+        {"cursor", page.cursor}, {"more", page.more}, {"items", std::move(items)}};
 }
 
 }  // namespace
 
 ApiServer::ApiServer(TelemetryStore& store, ApiSettings settings, Logger& logger)
-    : store_(store), settings_(std::move(settings)), logger_(logger), server_(std::make_unique<httplib::Server>()) {
+    : store_(store),
+      settings_(std::move(settings)),
+      logger_(logger),
+      server_(std::make_unique<httplib::Server>()) {
     RegisterRoutes();
 }
 
@@ -133,8 +137,8 @@ void ApiServer::Start() {
 }
 
 void ApiServer::Run() {
-    logger_.Info(kComponent, "Listening on " + settings_.bindAddress + ":" +
-                                 std::to_string(settings_.port));
+    logger_.Info(kComponent,
+                 "Listening on " + settings_.bindAddress + ":" + std::to_string(settings_.port));
     if (!server_->listen(settings_.bindAddress, settings_.port)) {
         logger_.Error(kComponent, "Failed to bind " + settings_.bindAddress + ":" +
                                       std::to_string(settings_.port));

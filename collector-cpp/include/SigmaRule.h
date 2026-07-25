@@ -9,16 +9,10 @@ namespace sentinelforge {
 // translation into the internal Rule model. Holds only the Phase-1 subset;
 // unsupported Sigma fields are ignored by the parser and never appear here.
 class SigmaRule {
-public:
-    SigmaRule(std::string title,
-              std::string id,
-              std::string status,
-              std::string description,
-              std::string logsourceCategory,
-              std::string processName,
-              std::string commandLineContains,
-              std::string condition,
-              std::string level,
+   public:
+    SigmaRule(std::string title, std::string id, std::string status, std::string description,
+              std::string logsourceCategory, std::string processName,
+              std::string commandLineContains, std::string condition, std::string level,
               std::vector<std::string> tags);
 
     const std::string& Title() const;
@@ -32,7 +26,7 @@ public:
     const std::string& Level() const;
     const std::vector<std::string>& Tags() const;
 
-private:
+   private:
     std::string title_;
     std::string id_;
     std::string status_;

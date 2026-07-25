@@ -15,15 +15,15 @@ class Panel;
 
 class LogViewer final : public QWidget {
     Q_OBJECT
-public:
+   public:
     explicit LogViewer(QWidget* parent = nullptr);
 
     void focusEditor();
 
-public slots:
+   public slots:
     void appendLines(const QVector<sentinelforge::LogLine>& lines);
 
-private:
+   private:
     void applyFilter();
     void onManualScroll(int value);
     void copyVisible();

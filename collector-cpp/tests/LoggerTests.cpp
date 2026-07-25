@@ -17,11 +17,11 @@ namespace sentinelforge {
 namespace {
 
 class LoggerTest : public ::testing::Test {
-protected:
+   protected:
     void SetUp() override {
         const auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
-        tempDir_ = std::filesystem::temp_directory_path() /
-                   ("sf_log_test_" + std::string(info->name()));
+        tempDir_ =
+            std::filesystem::temp_directory_path() / ("sf_log_test_" + std::string(info->name()));
         std::error_code ec;
         std::filesystem::remove_all(tempDir_, ec);
         std::filesystem::create_directories(tempDir_);
@@ -76,7 +76,8 @@ TEST_F(LoggerTest, TimestampExists) {
     const std::string contents = ReadLogFile();
     const std::regex timestamp(R"(^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} )");
     EXPECT_TRUE(std::regex_search(contents, timestamp))
-        << "Every line must begin with YYYY-MM-DD HH:MM:SS.mmm; got:\n" << contents;
+        << "Every line must begin with YYYY-MM-DD HH:MM:SS.mmm; got:\n"
+        << contents;
 }
 
 TEST_F(LoggerTest, ComponentNameFormatting) {
@@ -85,7 +86,8 @@ TEST_F(LoggerTest, ComponentNameFormatting) {
 
     const std::string contents = ReadLogFile();
     EXPECT_NE(contents.find("[INFO ] [RuleLoader] Loaded 3 rules."), std::string::npos)
-        << "Line must include padded level and bracketed component; got:\n" << contents;
+        << "Line must include padded level and bracketed component; got:\n"
+        << contents;
 }
 
 TEST_F(LoggerTest, FileOutputCreation) {
@@ -100,7 +102,8 @@ TEST_F(LoggerTest, FileOutputCreation) {
         logger.Info("Application", "creates directories and file");
     }
 
-    ASSERT_TRUE(std::filesystem::exists(nested)) << "Log file and parent directories must be created";
+    ASSERT_TRUE(std::filesystem::exists(nested))
+        << "Log file and parent directories must be created";
 
     // Append, never overwrite: a second logger writing the same path must keep the first line.
     {
@@ -158,8 +161,7 @@ TEST_F(LoggerTest, InvalidConfigurationFallback) {
     emptyPath.path.clear();
 
     Logger fallback(emptyPath);
-    EXPECT_TRUE(fallback.ConsoleEnabled())
-        << "An empty file path must fall back to console output";
+    EXPECT_TRUE(fallback.ConsoleEnabled()) << "An empty file path must fall back to console output";
     EXPECT_FALSE(fallback.FileEnabled()) << "File output must be disabled when the path is empty";
 }
 

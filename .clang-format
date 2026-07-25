@@ -1,0 +1,35 @@
+---
+# Matches the style already in use across collector-cpp/ and gui/, not a new
+# convention: 4-space indent, K&R braces, left-aligned pointers/references
+# (`Type& name`, not `Type &name`), unindented namespace bodies, includes
+# left in their existing manually-grouped order (own header, blank line,
+# std/third-party) rather than auto-sorted across blank-line boundaries.
+BasedOnStyle: Google
+Language: Cpp
+
+IndentWidth: 4
+ColumnLimit: 100
+UseTab: Never
+
+PointerAlignment: Left
+ReferenceAlignment: Left
+DerivePointerAlignment: false
+
+NamespaceIndentation: None
+
+BreakBeforeBraces: Attach
+AllowShortFunctionsOnASingleLine: All
+AllowShortLambdasOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+SortIncludes: Never
+IncludeBlocks: Preserve
+
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+BinPackArguments: true
+BinPackParameters: true
+
+SpacesBeforeTrailingComments: 2

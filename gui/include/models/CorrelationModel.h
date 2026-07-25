@@ -10,21 +10,10 @@ namespace sentinelforge {
 
 class CorrelationModel final : public QAbstractTableModel {
     Q_OBJECT
-public:
-    enum Column : int {
-        Timestamp = 0,
-        SeverityCol,
-        Title,
-        Confidence,
-        Events,
-        ColumnCount
-    };
+   public:
+    enum Column : int { Timestamp = 0, SeverityCol, Title, Confidence, Events, ColumnCount };
 
-    enum Roles : int {
-        SeverityRole = Qt::UserRole + 1,
-        ConfidenceRole,
-        AlertRole
-    };
+    enum Roles : int { SeverityRole = Qt::UserRole + 1, ConfidenceRole, AlertRole };
 
     explicit CorrelationModel(int capacity = 5000, QObject* parent = nullptr);
 
@@ -38,7 +27,7 @@ public:
     const CorrelationAlert* at(int row) const;
     void clear();
 
-private:
+   private:
     void evictOldest(int count);
 
     QVector<CorrelationAlert> rows_;

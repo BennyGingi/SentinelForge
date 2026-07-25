@@ -11,15 +11,8 @@ namespace sentinelforge {
 
 class DetectionModel final : public QAbstractTableModel {
     Q_OBJECT
-public:
-    enum Column : int {
-        Timestamp = 0,
-        SeverityCol,
-        Rule,
-        Process,
-        Technique,
-        ColumnCount
-    };
+   public:
+    enum Column : int { Timestamp = 0, SeverityCol, Rule, Process, Technique, ColumnCount };
 
     enum Roles : int {
         SeverityRole = Qt::UserRole + 1,
@@ -48,7 +41,7 @@ public:
 
     static QString buildSearchBlob(const Detection& d);
 
-private:
+   private:
     void evictOldest(int count);
     void indexId(const Detection& d, int row);
     void reindex();

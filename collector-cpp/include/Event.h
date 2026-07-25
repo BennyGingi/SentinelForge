@@ -9,13 +9,9 @@ namespace sentinelforge {
 // process-creation record). Constructed once by EventParser and never
 // mutated afterward.
 class Event {
-public:
-    Event(std::string timestamp,
-          std::string hostname,
-          std::string username,
-          std::string processName,
-          std::string parentProcess,
-          std::string commandLine,
+   public:
+    Event(std::string timestamp, std::string hostname, std::string username,
+          std::string processName, std::string parentProcess, std::string commandLine,
           std::uint32_t pid);
 
     const std::string& Timestamp() const;
@@ -26,7 +22,7 @@ public:
     const std::string& CommandLine() const;
     std::uint32_t Pid() const;
 
-private:
+   private:
     std::string timestamp_;
     std::string hostname_;
     std::string username_;

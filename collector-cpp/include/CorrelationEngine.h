@@ -26,7 +26,7 @@ struct CorrelationSettings {
 // Maintains a rolling history of NormalizedEvent objects and evaluates
 // registered CorrelationRule implementations. Independent of JSON parsing.
 class CorrelationEngine {
-public:
+   public:
     explicit CorrelationEngine(CorrelationSettings settings = {});
 
     void Configure(CorrelationSettings settings);
@@ -46,7 +46,7 @@ public:
     std::size_t HistorySize() const;
     std::size_t RuleCount() const;
 
-private:
+   private:
     void PruneHistory(std::chrono::system_clock::time_point now);
     void RegisterDefaultRules();
     static std::string Fingerprint(const CorrelationRule& rule, const CorrelationAlert& alert);

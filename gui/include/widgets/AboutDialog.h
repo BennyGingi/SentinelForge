@@ -8,7 +8,7 @@ namespace sentinelforge {
 // alongside the rest of the console like RuleDetailDialog.
 class AboutDialog final : public QDialog {
     Q_OBJECT
-public:
+   public:
     explicit AboutDialog(QWidget* parent = nullptr);
     void showAbout();
 };

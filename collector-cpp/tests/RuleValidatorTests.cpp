@@ -14,13 +14,11 @@ namespace {
 // Builds a rule from just the fields RuleValidator inspects, filling the
 // optional metadata with fixed placeholder values. Keeps each test free of
 // the nine-argument Rule constructor and of irrelevant setup.
-Rule MakeRule(const std::string& name,
-              const std::string& processName,
-              const std::string& commandLineContains,
-              const std::string& severity,
+Rule MakeRule(const std::string& name, const std::string& processName,
+              const std::string& commandLineContains, const std::string& severity,
               const std::string& mitre) {
-    return Rule(name, processName, commandLineContains, severity, mitre,
-                "SentinelForge", "1.0", "test rule", "2024-01-01");
+    return Rule(name, processName, commandLineContains, severity, mitre, "SentinelForge", "1.0",
+                "test rule", "2024-01-01");
 }
 
 // A rule that passes every validation check; individual tests invalidate one
@@ -36,7 +34,7 @@ bool ContainsError(const std::vector<std::string>& errors, const std::string& su
 }
 
 class RuleValidatorTest : public ::testing::Test {
-protected:
+   protected:
     RuleValidator validator_;
     std::unordered_set<std::string> existingNames_;
 };

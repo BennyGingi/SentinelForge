@@ -71,9 +71,9 @@ void LiveControlsBar::syncButtons() {
     pauseButton_->setEnabled(!paused_);
     resumeButton_->setEnabled(paused_);
     liveButton_->setObjectName(paused_ ? QStringLiteral("LiveButton")
-                                        : QStringLiteral("LiveButtonActive"));
+                                       : QStringLiteral("LiveButtonActive"));
     pauseButton_->setObjectName(paused_ ? QStringLiteral("PauseButtonActive")
-                                         : QStringLiteral("PauseButton"));
+                                        : QStringLiteral("PauseButton"));
     liveButton_->style()->unpolish(liveButton_);
     liveButton_->style()->polish(liveButton_);
     pauseButton_->style()->unpolish(pauseButton_);

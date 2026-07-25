@@ -9,9 +9,8 @@ namespace sentinelforge {
 
 namespace {
 
-std::string RequireString(const nlohmann::json& json,
-                           const std::string& field,
-                           const std::filesystem::path& path) {
+std::string RequireString(const nlohmann::json& json, const std::string& field,
+                          const std::filesystem::path& path) {
     if (!json.contains(field)) {
         throw std::runtime_error("Missing required field '" + field + "' in " + path.string());
     }
@@ -47,13 +46,10 @@ Event EventParser::ParseFile(const std::filesystem::path& path) const {
         throw std::runtime_error("Malformed JSON in " + path.string() + ": " + e.what());
     }
 
-    return Event(RequireString(json, "timestamp", path),
-                 RequireString(json, "hostname", path),
-                 RequireString(json, "username", path),
-                 RequireString(json, "process_name", path),
+    return Event(RequireString(json, "timestamp", path), RequireString(json, "hostname", path),
+                 RequireString(json, "username", path), RequireString(json, "process_name", path),
                  RequireString(json, "parent_process", path),
-                 RequireString(json, "command_line", path),
-                 RequirePid(json, path));
+                 RequireString(json, "command_line", path), RequirePid(json, path));
 }
 
 }  // namespace sentinelforge

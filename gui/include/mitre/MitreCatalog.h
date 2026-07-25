@@ -16,7 +16,7 @@ struct MitreTechnique {
 // Presentation reference data only — not detection logic.
 // Loaded once from :/mitre/techniques.json.
 class MitreCatalog final {
-public:
+   public:
     static MitreCatalog& instance();
 
     bool load();
@@ -24,7 +24,7 @@ public:
     static bool isValidTechniqueId(const QString& techniqueId);
     static QUrl attackUrl(const QString& techniqueId);
 
-private:
+   private:
     MitreCatalog() = default;
     QHash<QString, MitreTechnique> byId_;
     bool loaded_ = false;

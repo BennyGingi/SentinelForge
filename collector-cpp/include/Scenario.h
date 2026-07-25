@@ -18,10 +18,10 @@ namespace sentinelforge {
 // Rule/DetectionResult have no separate "id" field in the collector today;
 // RuleName is the closest stable identifier, so that is what scenarios name.
 class Scenario {
-public:
-    Scenario(std::string name, std::string description,
-             std::vector<std::string> mitreTechniques, std::vector<nlohmann::json> events,
-             std::vector<std::string> expectedDetections, bool knownGap, std::string gapReason);
+   public:
+    Scenario(std::string name, std::string description, std::vector<std::string> mitreTechniques,
+             std::vector<nlohmann::json> events, std::vector<std::string> expectedDetections,
+             bool knownGap, std::string gapReason);
 
     const std::string& Name() const;
     const std::string& Description() const;
@@ -36,7 +36,7 @@ public:
     bool KnownGap() const;
     const std::string& GapReason() const;
 
-private:
+   private:
     std::string name_;
     std::string description_;
     std::vector<std::string> mitreTechniques_;
@@ -48,7 +48,7 @@ private:
 
 // Outcome of loading and schema-checking one scenario file.
 class ScenarioLoadResult {
-public:
+   public:
     static ScenarioLoadResult Success(Scenario scenario);
     static ScenarioLoadResult Failure(std::string identifier, std::vector<std::string> errors);
 
@@ -57,7 +57,7 @@ public:
     const std::string& Identifier() const;
     const std::vector<std::string>& Errors() const;
 
-private:
+   private:
     ScenarioLoadResult(bool valid, Scenario scenario, std::string identifier,
                        std::vector<std::string> errors);
 
@@ -73,7 +73,7 @@ private:
 // mitre_techniques are optional. known_gap and gap_reason are optional but
 // gap_reason is required whenever known_gap: true is present.
 class ScenarioLoader {
-public:
+   public:
     ScenarioLoadResult LoadFile(const std::filesystem::path& path) const;
 
     // Discovers every *.yaml / *.yml file directly under directory (no

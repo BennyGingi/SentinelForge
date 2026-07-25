@@ -23,7 +23,7 @@ struct CorrelationHistoryEntry {
 // event plus recent history and optionally return a CorrelationAlert.
 // CorrelationEngine owns registered rules and never embeds rule-specific logic.
 class CorrelationRule {
-public:
+   public:
     virtual ~CorrelationRule() = default;
 
     // Stable identifier used for duplicate-alert suppression.
@@ -33,8 +33,7 @@ public:
     // when the rule does not fire. Detection results are provided for future
     // hybrid rules; behavioral rules may ignore them.
     virtual std::optional<CorrelationAlert> Evaluate(
-        const NormalizedEvent& current,
-        const std::deque<CorrelationHistoryEntry>& history,
+        const NormalizedEvent& current, const std::deque<CorrelationHistoryEntry>& history,
         const std::vector<DetectionResult>& detectionResults) const = 0;
 };
 

@@ -10,7 +10,7 @@ namespace sentinelforge {
 
 class CollapsibleSection final : public QFrame {
     Q_OBJECT
-public:
+   public:
     explicit CollapsibleSection(const QString& title, bool expanded = true,
                                 QWidget* parent = nullptr);
 
@@ -18,7 +18,7 @@ public:
     void setExpanded(bool expanded);
     bool isExpanded() const { return expanded_; }
 
-private:
+   private:
     void sync();
 
     QToolButton* toggle_ = nullptr;

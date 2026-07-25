@@ -20,7 +20,7 @@ namespace sentinelforge {
 // should report the problem and exit cleanly rather than continue with
 // nonsense settings.
 class ConfigurationError : public std::runtime_error {
-public:
+   public:
     explicit ConfigurationError(const std::string& message);
 };
 
@@ -32,7 +32,7 @@ public:
 // needs a particular setting. Every accessor is read-only and the object
 // never changes after construction.
 class Configuration {
-public:
+   public:
     // Loads configuration from `path`:
     //
     //   * File missing        -> returns a Configuration built entirely from
@@ -62,17 +62,11 @@ public:
     const ApiSettings& Api() const;
     bool DashboardEnabled() const;
 
-private:
-    Configuration(std::filesystem::path rulesDirectory,
-                  std::filesystem::path sampleEventFile,
-                  LoggingSettings logging,
-                  JsonExportSettings jsonExport,
-                  SigmaSettings sigma,
-                  MonitoringSettings monitoring,
-                  CorrelationSettings correlation,
-                  std::filesystem::path outputDirectory,
-                  ApiSettings api,
-                  bool dashboardEnabled);
+   private:
+    Configuration(std::filesystem::path rulesDirectory, std::filesystem::path sampleEventFile,
+                  LoggingSettings logging, JsonExportSettings jsonExport, SigmaSettings sigma,
+                  MonitoringSettings monitoring, CorrelationSettings correlation,
+                  std::filesystem::path outputDirectory, ApiSettings api, bool dashboardEnabled);
 
     std::filesystem::path rulesDirectory_;
     std::filesystem::path sampleEventFile_;

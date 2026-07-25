@@ -44,8 +44,7 @@ void ReportPrinter::PrintCorrelationAlerts(const std::vector<CorrelationAlert>& 
         logger.Warn("CorrelationEngine", "Correlation alert");
         logger.Warn("CorrelationEngine", "  Title: " + alert.Title());
         logger.Warn("CorrelationEngine", "  Severity: " + alert.Severity());
-        logger.Warn("CorrelationEngine",
-                    "  Confidence: " + std::to_string(alert.Confidence()));
+        logger.Warn("CorrelationEngine", "  Confidence: " + std::to_string(alert.Confidence()));
         logger.Warn("CorrelationEngine", "  Timestamp: " + alert.Timestamp());
         logger.Warn("CorrelationEngine",
                     "  Matched events: " + std::to_string(alert.MatchedEventCount()));

@@ -12,12 +12,10 @@ constexpr std::array<const char*, 4> kAllowedSeverities = {"Low", "Medium", "Hig
 
 bool IsAllowedSeverity(const std::string& severity) {
     return std::any_of(kAllowedSeverities.begin(), kAllowedSeverities.end(),
-                        [&severity](const char* allowed) { return severity == allowed; });
+                       [&severity](const char* allowed) { return severity == allowed; });
 }
 
-std::string AllowedSeveritiesList() {
-    return "Low, Medium, High, Critical";
-}
+std::string AllowedSeveritiesList() { return "Low, Medium, High, Critical"; }
 
 }  // namespace
 
@@ -40,8 +38,8 @@ RuleValidationResult RuleValidator::Validate(
     if (rule.Severity().empty()) {
         errors.push_back("Missing required field: severity");
     } else if (!IsAllowedSeverity(rule.Severity())) {
-        errors.push_back("Invalid severity: " + rule.Severity() + " (allowed: " +
-                          AllowedSeveritiesList() + ")");
+        errors.push_back("Invalid severity: " + rule.Severity() +
+                         " (allowed: " + AllowedSeveritiesList() + ")");
     }
 
     if (rule.Mitre().empty()) {

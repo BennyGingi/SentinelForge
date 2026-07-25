@@ -12,11 +12,11 @@ namespace sentinelforge {
 namespace {
 
 class ConfigurationTest : public ::testing::Test {
-protected:
+   protected:
     void SetUp() override {
         const auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
-        tempDir_ = std::filesystem::temp_directory_path() /
-                   ("sf_cfg_test_" + std::string(info->name()));
+        tempDir_ =
+            std::filesystem::temp_directory_path() / ("sf_cfg_test_" + std::string(info->name()));
         std::error_code ec;
         std::filesystem::remove_all(tempDir_, ec);
         std::filesystem::create_directories(tempDir_);
@@ -49,23 +49,30 @@ TEST_F(ConfigurationTest, DefaultConfigurationCreation) {
     EXPECT_FALSE(config.Logging().file) << "File logging should be disabled by default";
     EXPECT_FALSE(config.Logging().path.empty()) << "Default log path should be set";
     EXPECT_TRUE(config.JsonExport().enabled) << "JSON export should be enabled by default";
-    EXPECT_FALSE(config.JsonExport().outputFile.empty()) << "Default JSON export path should be set";
+    EXPECT_FALSE(config.JsonExport().outputFile.empty())
+        << "Default JSON export path should be set";
     EXPECT_TRUE(config.Sigma().enabled) << "Sigma loading should be enabled by default";
-    EXPECT_FALSE(config.Sigma().rulesDirectory.empty()) << "Default Sigma rules directory should be set";
+    EXPECT_FALSE(config.Sigma().rulesDirectory.empty())
+        << "Default Sigma rules directory should be set";
     EXPECT_TRUE(config.Monitoring().enabled) << "Monitoring should be enabled by default";
-    EXPECT_FALSE(config.Monitoring().inputDirectory.empty()) << "Default monitor input directory should be set";
+    EXPECT_FALSE(config.Monitoring().inputDirectory.empty())
+        << "Default monitor input directory should be set";
     EXPECT_FALSE(config.Monitoring().processedDirectory.empty())
         << "Default monitor processed directory should be set";
     EXPECT_FALSE(config.Monitoring().failedDirectory.empty())
         << "Default monitor failed directory should be set";
-    EXPECT_EQ(config.Monitoring().pollIntervalMs, 1000u) << "Default poll interval should be 1000 ms";
+    EXPECT_EQ(config.Monitoring().pollIntervalMs, 1000u)
+        << "Default poll interval should be 1000 ms";
     EXPECT_TRUE(config.Correlation().enabled) << "Correlation should be enabled by default";
-    EXPECT_EQ(config.Correlation().maxEvents, 1000u) << "Default correlation max_events should be 1000";
+    EXPECT_EQ(config.Correlation().maxEvents, 1000u)
+        << "Default correlation max_events should be 1000";
     EXPECT_EQ(config.Correlation().timeWindowSeconds, 600u)
         << "Default correlation time window should be 600 seconds";
     EXPECT_TRUE(config.Api().enabled) << "API should be enabled by default";
-    EXPECT_EQ(config.Api().bindAddress, "127.0.0.1") << "Default API bind address should be loopback-only";
-    EXPECT_EQ(config.Api().port, static_cast<std::uint16_t>(8787)) << "Default API port should be 8787";
+    EXPECT_EQ(config.Api().bindAddress, "127.0.0.1")
+        << "Default API bind address should be loopback-only";
+    EXPECT_EQ(config.Api().port, static_cast<std::uint16_t>(8787))
+        << "Default API port should be 8787";
     EXPECT_FALSE(config.DashboardEnabled()) << "Dashboard should be disabled by default";
     EXPECT_FALSE(config.RulesDirectory().empty()) << "Default rules directory should be set";
     EXPECT_FALSE(config.SampleEventFile().empty()) << "Default sample event file should be set";
@@ -98,8 +105,7 @@ TEST_F(ConfigurationTest, MissingConfigurationFileFallsBackToDefaults) {
 }
 
 TEST_F(ConfigurationTest, InvalidLoggingLevelRejected) {
-    const std::filesystem::path path =
-        WriteConfig(R"({ "logging": { "level": "LOUD" } })");
+    const std::filesystem::path path = WriteConfig(R"({ "logging": { "level": "LOUD" } })");
 
     EXPECT_THROW(Configuration::LoadFromFile(path, quietLogger_), ConfigurationError)
         << "An unknown logging level must be rejected";
@@ -130,39 +136,23 @@ TEST_F(ConfigurationTest, ImmutableGettersReturnExpectedValues) {
     const std::filesystem::path monitorOut = tempDir_ / "processed";
     const std::filesystem::path monitorFailed = tempDir_ / "failed";
 
-    const std::string json = std::string("{\n") +
-        "  \"rules_directory\": \"" + rulesDir.generic_string() + "\",\n" +
+    const std::string json =
+        std::string("{\n") + "  \"rules_directory\": \"" + rulesDir.generic_string() + "\",\n" +
         "  \"sample_event_file\": \"" + sampleFile.generic_string() + "\",\n" +
         "  \"output_directory\": \"" + outputDir.generic_string() + "\",\n" +
         "  \"api\": { \"enabled\": false, \"bind_address\": \"0.0.0.0\", \"port\": 1234 },\n" +
-        "  \"dashboard_enabled\": true,\n" +
-        "  \"logging\": {\n" +
-        "    \"level\": \"WARN\",\n" +
-        "    \"console\": false,\n" +
-        "    \"file\": true,\n" +
-        "    \"path\": \"" + logPath.generic_string() + "\"\n" +
-        "  },\n" +
-        "  \"json_export\": {\n" +
-        "    \"enabled\": false,\n" +
-        "    \"output_file\": \"" + exportPath.generic_string() + "\"\n" +
-        "  },\n" +
-        "  \"sigma\": {\n" +
-        "    \"enabled\": false,\n" +
-        "    \"rules_directory\": \"" + sigmaDir.generic_string() + "\"\n" +
-        "  },\n" +
-        "  \"monitoring\": {\n" +
-        "    \"enabled\": false,\n" +
-        "    \"input_directory\": \"" + monitorIn.generic_string() + "\",\n" +
-        "    \"processed_directory\": \"" + monitorOut.generic_string() + "\",\n" +
-        "    \"failed_directory\": \"" + monitorFailed.generic_string() + "\",\n" +
-        "    \"poll_interval_ms\": 500\n" +
-        "  },\n" +
-        "  \"correlation\": {\n" +
-        "    \"enabled\": false,\n" +
-        "    \"max_events\": 250,\n" +
-        "    \"time_window_seconds\": 90\n" +
-        "  }\n" +
-        "}\n";
+        "  \"dashboard_enabled\": true,\n" + "  \"logging\": {\n" + "    \"level\": \"WARN\",\n" +
+        "    \"console\": false,\n" + "    \"file\": true,\n" + "    \"path\": \"" +
+        logPath.generic_string() + "\"\n" + "  },\n" + "  \"json_export\": {\n" +
+        "    \"enabled\": false,\n" + "    \"output_file\": \"" + exportPath.generic_string() +
+        "\"\n" + "  },\n" + "  \"sigma\": {\n" + "    \"enabled\": false,\n" +
+        "    \"rules_directory\": \"" + sigmaDir.generic_string() + "\"\n" + "  },\n" +
+        "  \"monitoring\": {\n" + "    \"enabled\": false,\n" + "    \"input_directory\": \"" +
+        monitorIn.generic_string() + "\",\n" + "    \"processed_directory\": \"" +
+        monitorOut.generic_string() + "\",\n" + "    \"failed_directory\": \"" +
+        monitorFailed.generic_string() + "\",\n" + "    \"poll_interval_ms\": 500\n" + "  },\n" +
+        "  \"correlation\": {\n" + "    \"enabled\": false,\n" + "    \"max_events\": 250,\n" +
+        "    \"time_window_seconds\": 90\n" + "  }\n" + "}\n";
 
     const Configuration config = Configuration::LoadFromFile(WriteConfig(json), quietLogger_);
 
@@ -186,9 +176,11 @@ TEST_F(ConfigurationTest, ImmutableGettersReturnExpectedValues) {
     EXPECT_EQ(config.Correlation().timeWindowSeconds, 90u);
     EXPECT_FALSE(config.Api().enabled) << "api.enabled should be read as false";
     EXPECT_EQ(config.Api().bindAddress, "0.0.0.0") << "api.bind_address should be read as 0.0.0.0";
-    EXPECT_EQ(config.Api().port, static_cast<std::uint16_t>(1234)) << "api.port should be read as 1234";
+    EXPECT_EQ(config.Api().port, static_cast<std::uint16_t>(1234))
+        << "api.port should be read as 1234";
     EXPECT_TRUE(config.DashboardEnabled()) << "dashboard_enabled should be read as true";
-    EXPECT_EQ(config.RulesDirectory(), rulesDir) << "rules_directory getter should echo the file value";
+    EXPECT_EQ(config.RulesDirectory(), rulesDir)
+        << "rules_directory getter should echo the file value";
     EXPECT_EQ(config.SampleEventFile(), sampleFile)
         << "sample_event_file getter should echo the file value";
     EXPECT_EQ(config.OutputDirectory(), outputDir)

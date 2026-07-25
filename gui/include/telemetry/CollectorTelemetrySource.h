@@ -20,25 +20,25 @@ namespace sentinelforge {
 // from the UI thread.
 class CollectorTelemetrySource final : public ITelemetrySource {
     Q_OBJECT
-public:
-    explicit CollectorTelemetrySource(
-        QUrl baseUrl = QUrl(QStringLiteral("http://127.0.0.1:8787")), QObject* parent = nullptr);
+   public:
+    explicit CollectorTelemetrySource(QUrl baseUrl = QUrl(QStringLiteral("http://127.0.0.1:8787")),
+                                      QObject* parent = nullptr);
 
-public slots:
+   public slots:
     void start() override;
     void stop() override;
 
-public:
+   public:
     // No /rules endpoint exists on the collector API yet (phase 1 shipped
     // only /health, /stats, /detections, /correlations, /logs) -- returns a
     // default-constructed RuleInfo with just ruleId echoed back. Documented
     // gap, not fabricated data; see docs/architecture/collector-api.md.
     Q_INVOKABLE RuleInfo ruleInfo(const QString& ruleId) const override;
 
-private slots:
+   private slots:
     void poll();
 
-private:
+   private:
     // isTickRequest distinguishes the 4 requests a timer tick fires
     // (participate in the once-per-tick connection-state verdict) from
     // "more": true continuation follow-ups draining a backlog page (don't --

@@ -23,7 +23,7 @@ struct JsonExportSettings {
 // structured JSON document and optionally writes it to disk. Console reporting
 // remains ReportPrinter's responsibility; this class is an additional output.
 class JsonExporter {
-public:
+   public:
     // Builds the JSON document for `report`. Matched detections appear in the
     // detections array; correlation_alerts is always present (possibly empty).
     nlohmann::json BuildDocument(const DetectionReport& report,
@@ -33,10 +33,8 @@ public:
     // nothing. Otherwise writes BuildDocument(...) to settings.outputFile,
     // creating parent directories as needed. Failures are logged and return false;
     // success returns true. Does not throw.
-    bool Export(const DetectionReport& report,
-                const JsonExportSettings& settings,
-                const Logger& logger,
-                const std::vector<CorrelationAlert>& alerts = {}) const;
+    bool Export(const DetectionReport& report, const JsonExportSettings& settings,
+                const Logger& logger, const std::vector<CorrelationAlert>& alerts = {}) const;
 };
 
 }  // namespace sentinelforge

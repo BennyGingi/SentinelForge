@@ -11,13 +11,13 @@ namespace sentinelforge {
 // Outcome of validating one rule: whether it passed, and every reason it
 // failed if it did not (a rule can fail more than one check at once).
 class RuleValidationResult {
-public:
+   public:
     RuleValidationResult(bool valid, std::vector<std::string> errors);
 
     bool IsValid() const;
     const std::vector<std::string>& Errors() const;
 
-private:
+   private:
     bool valid_;
     std::vector<std::string> errors_;
 };
@@ -27,9 +27,9 @@ private:
 // accepted in the current load. Pure validation: no logging, no printing,
 // no file access.
 class RuleValidator {
-public:
+   public:
     RuleValidationResult Validate(const Rule& rule,
-                                   const std::unordered_set<std::string>& existingRuleNames) const;
+                                  const std::unordered_set<std::string>& existingRuleNames) const;
 };
 
 }  // namespace sentinelforge

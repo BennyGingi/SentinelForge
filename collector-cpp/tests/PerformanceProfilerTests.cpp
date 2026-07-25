@@ -30,8 +30,7 @@ TEST(PerformanceProfilerTest, ElapsedTimeIsNonNegative) {
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
     profiler.Stop("Work");
 
-    EXPECT_GE(profiler.Elapsed("Work").count(), 0)
-        << "Elapsed time must never be negative";
+    EXPECT_GE(profiler.Elapsed("Work").count(), 0) << "Elapsed time must never be negative";
 }
 
 TEST(PerformanceProfilerTest, UnknownStagesHandledSafely) {

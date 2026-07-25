@@ -87,7 +87,7 @@ struct TelemetryStats {
 // reader: every method here only ever holds the mutex for a vector
 // push_back/pop_front, never I/O, never a callback back out to a caller.
 class TelemetryStore {
-public:
+   public:
     static constexpr std::size_t kDetectionCap = 10000;
     static constexpr std::size_t kAlertCap = 5000;
     static constexpr std::size_t kLogCap = 10000;
@@ -115,7 +115,7 @@ public:
     // elsewhere in this API (e.g. an empty/malformed source timestamp).
     static std::int64_t ParseIso8601ToEpochMs(const std::string& timestamp);
 
-private:
+   private:
     template <typename T>
     static void PushBounded(std::deque<T>& buffer, T item, std::size_t cap);
 

@@ -24,9 +24,7 @@ const std::string& Scenario::Name() const { return name_; }
 const std::string& Scenario::Description() const { return description_; }
 const std::vector<std::string>& Scenario::MitreTechniques() const { return mitreTechniques_; }
 const std::vector<nlohmann::json>& Scenario::Events() const { return events_; }
-const std::vector<std::string>& Scenario::ExpectedDetections() const {
-    return expectedDetections_;
-}
+const std::vector<std::string>& Scenario::ExpectedDetections() const { return expectedDetections_; }
 bool Scenario::KnownGap() const { return knownGap_; }
 const std::string& Scenario::GapReason() const { return gapReason_; }
 
@@ -119,7 +117,8 @@ ScenarioLoadResult ScenarioLoader::LoadFile(const std::filesystem::path& path) c
     try {
         root = YAML::Load(buffer.str());
     } catch (const YAML::Exception& ex) {
-        return ScenarioLoadResult::Failure(displayName, {std::string("YAML parse error: ") + ex.what()});
+        return ScenarioLoadResult::Failure(displayName,
+                                           {std::string("YAML parse error: ") + ex.what()});
     }
 
     if (!root || !root.IsMap()) {

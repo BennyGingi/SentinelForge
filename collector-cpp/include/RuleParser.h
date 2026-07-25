@@ -11,7 +11,7 @@ namespace sentinelforge {
 // unreadable file, malformed JSON, or missing/invalid required fields.
 // Has no knowledge of Event or matching logic.
 class RuleParser {
-public:
+   public:
     Rule ParseFile(const std::filesystem::path& path) const;
 };
 

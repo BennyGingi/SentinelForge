@@ -20,18 +20,12 @@ constexpr std::string_view kComponent = "EventMonitor";
 
 }  // namespace
 
-EventMonitor::EventMonitor(MonitoringSettings settings,
-                           JsonExportSettings jsonExport,
-                           std::vector<Rule> rules,
-                           EventParser& eventParser,
-                           EventNormalizer& eventNormalizer,
-                           DetectionEngine& detectionEngine,
-                           CorrelationEngine& correlationEngine,
-                           ReportPrinter& reportPrinter,
-                           JsonExporter& jsonExporter,
-                           PerformanceProfiler& profiler,
-                           Logger& logger,
-                           TelemetryStore& telemetryStore)
+EventMonitor::EventMonitor(MonitoringSettings settings, JsonExportSettings jsonExport,
+                           std::vector<Rule> rules, EventParser& eventParser,
+                           EventNormalizer& eventNormalizer, DetectionEngine& detectionEngine,
+                           CorrelationEngine& correlationEngine, ReportPrinter& reportPrinter,
+                           JsonExporter& jsonExporter, PerformanceProfiler& profiler,
+                           Logger& logger, TelemetryStore& telemetryStore)
     : settings_(std::move(settings)),
       jsonExport_(std::move(jsonExport)),
       rules_(std::move(rules)),
@@ -197,9 +191,9 @@ void EventMonitor::PublishToTelemetryStore(const NormalizedEvent& normalized,
     line.timestampMs = timestampMs;
     line.level = "INFO";
     line.component = std::string(kComponent);
-    line.message = "Processed event: " + normalized.ProcessName() + " on " +
-                   normalized.Hostname() + " (" + std::to_string(report.MatchesFound()) +
-                   " match(es), " + std::to_string(alerts.size()) + " correlation alert(s))";
+    line.message = "Processed event: " + normalized.ProcessName() + " on " + normalized.Hostname() +
+                   " (" + std::to_string(report.MatchesFound()) + " match(es), " +
+                   std::to_string(alerts.size()) + " correlation alert(s))";
     telemetryStore_.AppendLog(std::move(line));
 
     telemetryStore_.RecordEventProcessed(profiler_.Elapsed(ProfileStage::DetectionTime) +
@@ -214,10 +208,9 @@ void EventMonitor::MoveEventFile(const std::filesystem::path& path,
     if (std::filesystem::exists(finalDestination)) {
         const auto stem = path.stem().string();
         const auto ext = path.extension().string();
-        const auto stamp =
-            std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch())
-                .count();
+        const auto stamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                               std::chrono::system_clock::now().time_since_epoch())
+                               .count();
         finalDestination = destinationDirectory / (stem + "_" + std::to_string(stamp) + ext);
     }
 
@@ -238,8 +231,8 @@ void EventMonitor::MoveEventFile(const std::filesystem::path& path,
         return;
     }
 
-    logger_.Info(kComponent, "File archived (" + std::string(archiveLabel) + "): " +
-                                 finalDestination.filename().string());
+    logger_.Info(kComponent, "File archived (" + std::string(archiveLabel) +
+                                 "): " + finalDestination.filename().string());
 }
 
 void EventMonitor::InterruptibleWait() {

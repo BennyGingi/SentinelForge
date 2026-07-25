@@ -7,10 +7,9 @@
 
 namespace sentinelforge {
 
-RuleLoadResult SigmaLoader::LoadDirectory(
-    const std::filesystem::path& directory,
-    const std::unordered_set<std::string>& existingRuleNames,
-    const Logger& logger) const {
+RuleLoadResult SigmaLoader::LoadDirectory(const std::filesystem::path& directory,
+                                          const std::unordered_set<std::string>& existingRuleNames,
+                                          const Logger& logger) const {
     if (!std::filesystem::is_directory(directory)) {
         throw std::runtime_error("Sigma rule directory not found: " + directory.string());
     }

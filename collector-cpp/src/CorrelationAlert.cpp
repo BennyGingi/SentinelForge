@@ -4,11 +4,8 @@
 
 namespace sentinelforge {
 
-CorrelationAlert::CorrelationAlert(std::string title,
-                                   std::string description,
-                                   std::string severity,
-                                   std::uint8_t confidence,
-                                   std::string timestamp,
+CorrelationAlert::CorrelationAlert(std::string title, std::string description, std::string severity,
+                                   std::uint8_t confidence, std::string timestamp,
                                    std::size_t matchedEventCount,
                                    std::vector<std::string> mitreTechniques,
                                    std::vector<NormalizedEvent> contributingEvents)

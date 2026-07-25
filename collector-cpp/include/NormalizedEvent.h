@@ -7,23 +7,14 @@ namespace sentinelforge {
 // Source-agnostic security event consumed by DetectionEngine.
 // Fields not supplied by a given telemetry source remain empty.
 class NormalizedEvent {
-public:
+   public:
     NormalizedEvent() = default;
 
-    NormalizedEvent(std::string timestamp,
-                    std::string hostname,
-                    std::string username,
-                    std::string eventType,
-                    std::string processName,
-                    std::string parentProcess,
-                    std::string commandLine,
-                    std::string filePath,
-                    std::string hash,
-                    std::string sourceIp,
-                    std::string destinationIp,
-                    std::string destinationPort,
-                    std::string severity,
-                    std::string provider);
+    NormalizedEvent(std::string timestamp, std::string hostname, std::string username,
+                    std::string eventType, std::string processName, std::string parentProcess,
+                    std::string commandLine, std::string filePath, std::string hash,
+                    std::string sourceIp, std::string destinationIp, std::string destinationPort,
+                    std::string severity, std::string provider);
 
     const std::string& Timestamp() const;
     const std::string& Hostname() const;
@@ -40,7 +31,7 @@ public:
     const std::string& Severity() const;
     const std::string& Provider() const;
 
-private:
+   private:
     std::string timestamp_;
     std::string hostname_;
     std::string username_;

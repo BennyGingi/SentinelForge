@@ -11,19 +11,19 @@ namespace sentinelforge {
 // Presentation heuristic — collector should own scoring later.
 class ThreatScorer final : public QObject {
     Q_OBJECT
-public:
+   public:
     explicit ThreatScorer(QObject* parent = nullptr);
 
     void noteDetections(const QVector<Detection>& batch);
     Severity displayedLevel() const { return displayed_; }
 
-signals:
+   signals:
     void levelChanged(sentinelforge::Severity level, QString detail);
 
-private slots:
+   private slots:
     void onTick();
 
-private:
+   private:
     Severity computeRaw() const;
 
     struct Sample {

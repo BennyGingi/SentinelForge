@@ -10,16 +10,10 @@ namespace sentinelforge {
 // itself just carries whatever was present in the source file, including
 // empty strings for absent fields.
 class Rule {
-public:
-    Rule(std::string ruleName,
-         std::string processName,
-         std::string commandLineContains,
-         std::string severity,
-         std::string mitre,
-         std::string author,
-         std::string version,
-         std::string description,
-         std::string createdDate);
+   public:
+    Rule(std::string ruleName, std::string processName, std::string commandLineContains,
+         std::string severity, std::string mitre, std::string author, std::string version,
+         std::string description, std::string createdDate);
 
     // Required
     const std::string& RuleName() const;
@@ -34,7 +28,7 @@ public:
     const std::string& Description() const;
     const std::string& CreatedDate() const;
 
-private:
+   private:
     std::string ruleName_;
     std::string processName_;
     std::string commandLineContains_;

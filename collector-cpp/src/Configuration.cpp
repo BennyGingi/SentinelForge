@@ -54,22 +54,26 @@ std::string ToUpper(std::string value) {
 
 LogLevel ParseLogLevel(const std::string& raw) {
     const std::string upper = ToUpper(raw);
-    if (upper == "TRACE") return LogLevel::Trace;
-    if (upper == "DEBUG") return LogLevel::Debug;
-    if (upper == "INFO") return LogLevel::Info;
-    if (upper == "WARN" || upper == "WARNING") return LogLevel::Warn;
-    if (upper == "ERROR") return LogLevel::Error;
-    if (upper == "FATAL") return LogLevel::Fatal;
-    throw ConfigurationError(
-        "Invalid logging.level '" + raw +
-        "' (expected TRACE, DEBUG, INFO, WARN, ERROR, or FATAL)");
+    if (upper == "TRACE")
+        return LogLevel::Trace;
+    if (upper == "DEBUG")
+        return LogLevel::Debug;
+    if (upper == "INFO")
+        return LogLevel::Info;
+    if (upper == "WARN" || upper == "WARNING")
+        return LogLevel::Warn;
+    if (upper == "ERROR")
+        return LogLevel::Error;
+    if (upper == "FATAL")
+        return LogLevel::Fatal;
+    throw ConfigurationError("Invalid logging.level '" + raw +
+                             "' (expected TRACE, DEBUG, INFO, WARN, ERROR, or FATAL)");
 }
 
 // A path setting must be a non-empty string when present. Relative values are
 // resolved against `base` (the repository root); absolute values are taken as
 // is. Absent values fall back to the supplied default.
-std::filesystem::path ResolvePathField(const nlohmann::json& json,
-                                       const std::string& field,
+std::filesystem::path ResolvePathField(const nlohmann::json& json, const std::string& field,
                                        const std::filesystem::path& base,
                                        const std::filesystem::path& fallback) {
     if (!json.contains(field)) {
@@ -87,8 +91,7 @@ std::filesystem::path ResolvePathField(const nlohmann::json& json,
     return candidate.is_absolute() ? candidate : base / candidate;
 }
 
-LoggingSettings ParseLoggingSettings(const nlohmann::json& root,
-                                     const std::filesystem::path& base,
+LoggingSettings ParseLoggingSettings(const nlohmann::json& root, const std::filesystem::path& base,
                                      const LoggingSettings& defaults) {
     LoggingSettings settings = defaults;
     if (!root.contains("logging")) {
@@ -153,15 +156,13 @@ JsonExportSettings ParseJsonExportSettings(const nlohmann::json& root,
     }
 
     if (section.contains("output_file")) {
-        settings.outputFile =
-            ResolvePathField(section, "output_file", base, defaults.outputFile);
+        settings.outputFile = ResolvePathField(section, "output_file", base, defaults.outputFile);
     }
 
     return settings;
 }
 
-SigmaSettings ParseSigmaSettings(const nlohmann::json& root,
-                                 const std::filesystem::path& base,
+SigmaSettings ParseSigmaSettings(const nlohmann::json& root, const std::filesystem::path& base,
                                  const SigmaSettings& defaults) {
     SigmaSettings settings = defaults;
     if (!root.contains("sigma")) {
@@ -228,7 +229,8 @@ MonitoringSettings ParseMonitoringSettings(const nlohmann::json& root,
     if (section.contains("poll_interval_ms")) {
         const auto& value = section.at("poll_interval_ms");
         if (!value.is_number_unsigned()) {
-            throw ConfigurationError("Field 'monitoring.poll_interval_ms' must be a non-negative integer");
+            throw ConfigurationError(
+                "Field 'monitoring.poll_interval_ms' must be a non-negative integer");
         }
         const std::uint64_t raw = value.get<std::uint64_t>();
         if (raw < 1 || raw > 3600000) {
@@ -264,11 +266,13 @@ CorrelationSettings ParseCorrelationSettings(const nlohmann::json& root,
     if (section.contains("max_events")) {
         const auto& value = section.at("max_events");
         if (!value.is_number_unsigned()) {
-            throw ConfigurationError("Field 'correlation.max_events' must be a non-negative integer");
+            throw ConfigurationError(
+                "Field 'correlation.max_events' must be a non-negative integer");
         }
         const std::uint64_t raw = value.get<std::uint64_t>();
         if (raw < 1 || raw > 1000000) {
-            throw ConfigurationError("Field 'correlation.max_events' must be between 1 and 1000000");
+            throw ConfigurationError(
+                "Field 'correlation.max_events' must be between 1 and 1000000");
         }
         settings.maxEvents = static_cast<std::size_t>(raw);
     }
@@ -338,18 +342,13 @@ ApiSettings ParseApiSettings(const nlohmann::json& root, const ApiSettings& defa
 
 }  // namespace
 
-ConfigurationError::ConfigurationError(const std::string& message)
-    : std::runtime_error(message) {}
+ConfigurationError::ConfigurationError(const std::string& message) : std::runtime_error(message) {}
 
 Configuration::Configuration(std::filesystem::path rulesDirectory,
-                             std::filesystem::path sampleEventFile,
-                             LoggingSettings logging,
-                             JsonExportSettings jsonExport,
-                             SigmaSettings sigma,
-                             MonitoringSettings monitoring,
-                             CorrelationSettings correlation,
-                             std::filesystem::path outputDirectory,
-                             ApiSettings api,
+                             std::filesystem::path sampleEventFile, LoggingSettings logging,
+                             JsonExportSettings jsonExport, SigmaSettings sigma,
+                             MonitoringSettings monitoring, CorrelationSettings correlation,
+                             std::filesystem::path outputDirectory, ApiSettings api,
                              bool dashboardEnabled)
     : rulesDirectory_(std::move(rulesDirectory)),
       sampleEventFile_(std::move(sampleEventFile)),
@@ -403,22 +402,16 @@ Configuration Configuration::Defaults() {
     ApiSettings api;  // enabled=true, 127.0.0.1:8787 -- see ApiServer.h
 
     return Configuration(std::filesystem::path(DEFAULT_RULES_DIR),
-                         std::filesystem::path(DEFAULT_SAMPLE_EVENT_FILE),
-                         std::move(logging),
-                         std::move(jsonExport),
-                         std::move(sigma),
-                         std::move(monitoring),
-                         std::move(correlation),
-                         std::filesystem::path(DEFAULT_OUTPUT_DIR),
-                         std::move(api),
-                         kDefaultDashboardEnabled);
+                         std::filesystem::path(DEFAULT_SAMPLE_EVENT_FILE), std::move(logging),
+                         std::move(jsonExport), std::move(sigma), std::move(monitoring),
+                         std::move(correlation), std::filesystem::path(DEFAULT_OUTPUT_DIR),
+                         std::move(api), kDefaultDashboardEnabled);
 }
 
 Configuration Configuration::LoadFromFile(const std::filesystem::path& path, const Logger& logger) {
     if (!std::filesystem::exists(path)) {
-        logger.Warn("Configuration",
-                    "Configuration file not found at '" + path.string() +
-                        "'; using built-in defaults");
+        logger.Warn("Configuration", "Configuration file not found at '" + path.string() +
+                                         "'; using built-in defaults");
         return Defaults();
     }
 

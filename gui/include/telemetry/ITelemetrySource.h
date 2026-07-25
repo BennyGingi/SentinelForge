@@ -17,7 +17,7 @@ namespace sentinelforge {
 // Documented in docs/architecture/gui-architecture.md.
 class ITelemetrySource : public QObject {
     Q_OBJECT
-public:
+   public:
     explicit ITelemetrySource(QObject* parent = nullptr) : QObject(parent) {}
     ~ITelemetrySource() override = default;
 
@@ -29,7 +29,7 @@ public:
     // lives on a worker thread. See gui-architecture.md.
     virtual sentinelforge::RuleInfo ruleInfo(const QString& ruleId) const = 0;
 
-signals:
+   signals:
     void detectionsReceived(QVector<sentinelforge::Detection> batch);
     void correlationAlertsReceived(QVector<sentinelforge::CorrelationAlert> batch);
     void logLinesReceived(QVector<sentinelforge::LogLine> batch);

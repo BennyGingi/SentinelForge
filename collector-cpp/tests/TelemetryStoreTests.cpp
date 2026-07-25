@@ -111,7 +111,8 @@ TEST(TelemetryStoreTest, EvictsOldestAtAlertAndLogCaps) {
     while (true) {
         const auto page = store.AlertsSince(alertCursor);
         alertCount += page.items.size();
-        if (!page.more) break;
+        if (!page.more)
+            break;
         alertCursor = page.cursor;
     }
     EXPECT_EQ(alertCount, TelemetryStore::kAlertCap);
@@ -121,7 +122,8 @@ TEST(TelemetryStoreTest, EvictsOldestAtAlertAndLogCaps) {
     while (true) {
         const auto page = store.LogsSince(logCursor);
         logCount += page.items.size();
-        if (!page.more) break;
+        if (!page.more)
+            break;
         logCursor = page.cursor;
     }
     EXPECT_EQ(logCount, TelemetryStore::kLogCap);

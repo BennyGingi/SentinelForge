@@ -22,7 +22,7 @@ class RuleDetailDialog;
 
 class InspectorPane final : public QFrame {
     Q_OBJECT
-public:
+   public:
     using RuleLookup = std::function<RuleInfo(const QString& ruleId)>;
 
     explicit InspectorPane(QWidget* parent = nullptr);
@@ -30,17 +30,17 @@ public:
     void setDetectionModel(DetectionModel* model);
     void setRuleLookup(RuleLookup lookup);
 
-public slots:
+   public slots:
     void showDetection(const sentinelforge::Detection& detection);
     void showAlert(const sentinelforge::CorrelationAlert& alert);
     void showRule(const QString& ruleId);
     void clear();
     void closeInspector();
 
-signals:
+   signals:
     void ruleActivated(QString ruleId);
 
-private:
+   private:
     void buildUi();
     void renderDetection(const Detection& detection, bool pushHistory);
     void goBack();

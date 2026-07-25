@@ -11,7 +11,7 @@ namespace sentinelforge {
 // Today the only production path is JSON → Event → NormalizedEvent; additional
 // Normalize* overloads can be added later for Sysmon, EVTX, auditd, etc.
 class EventNormalizer {
-public:
+   public:
     // Map a parsed JSON Event into the generic NormalizedEvent model.
     // Fields not present on Event remain empty. Does not throw for empty values.
     NormalizedEvent Normalize(const Event& event) const;

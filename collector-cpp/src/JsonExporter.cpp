@@ -33,7 +33,7 @@ std::string UtcTimestampNow() {
 }  // namespace
 
 nlohmann::json JsonExporter::BuildDocument(const DetectionReport& report,
-                                            const std::vector<CorrelationAlert>& alerts) const {
+                                           const std::vector<CorrelationAlert>& alerts) const {
     nlohmann::json detections = nlohmann::json::array();
 
     for (const auto& result : report.Results()) {
@@ -75,10 +75,8 @@ nlohmann::json JsonExporter::BuildDocument(const DetectionReport& report,
                           {"correlation_alerts", std::move(correlationAlerts)}};
 }
 
-bool JsonExporter::Export(const DetectionReport& report,
-                          const JsonExportSettings& settings,
-                          const Logger& logger,
-                          const std::vector<CorrelationAlert>& alerts) const {
+bool JsonExporter::Export(const DetectionReport& report, const JsonExportSettings& settings,
+                          const Logger& logger, const std::vector<CorrelationAlert>& alerts) const {
     if (!settings.enabled) {
         logger.Debug(kComponent, "JSON export disabled; skipping");
         return true;
@@ -99,18 +97,16 @@ bool JsonExporter::Export(const DetectionReport& report,
         std::error_code ec;
         std::filesystem::create_directories(parent, ec);
         if (ec) {
-            logger.Error(kComponent,
-                         "JSON export failed: cannot create directory '" + parent.string() +
-                             "': " + ec.message());
+            logger.Error(kComponent, "JSON export failed: cannot create directory '" +
+                                         parent.string() + "': " + ec.message());
             return false;
         }
     }
 
     std::ofstream stream(settings.outputFile);
     if (!stream.is_open()) {
-        logger.Error(kComponent,
-                     "JSON export failed: cannot open '" + settings.outputFile.string() +
-                         "' for writing");
+        logger.Error(kComponent, "JSON export failed: cannot open '" +
+                                     settings.outputFile.string() + "' for writing");
         return false;
     }
 

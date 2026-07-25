@@ -39,8 +39,7 @@ std::vector<std::string> OptionalStringList(const YAML::Node& node) {
 
 // Reads Phase-1 selection fields. Keys we do not understand (other modifiers,
 // fields, lists) are skipped so unsupported Sigma stays forward-compatible.
-void ReadSelection(const YAML::Node& selection,
-                   std::string& processName,
+void ReadSelection(const YAML::Node& selection, std::string& processName,
                    std::string& commandLineContains) {
     if (!selection || !selection.IsMap()) {
         return;
@@ -67,9 +66,7 @@ void ReadSelection(const YAML::Node& selection,
     }
 }
 
-SigmaRule EmptySigmaRule() {
-    return SigmaRule("", "", "", "", "", "", "", "", "", {});
-}
+SigmaRule EmptySigmaRule() { return SigmaRule("", "", "", "", "", "", "", "", "", {}); }
 
 }  // namespace
 
@@ -83,9 +80,7 @@ SigmaParseResult SigmaParseResult::Failure(std::string identifier,
     return SigmaParseResult(false, EmptySigmaRule(), std::move(identifier), std::move(errors));
 }
 
-SigmaParseResult::SigmaParseResult(bool valid,
-                                   SigmaRule rule,
-                                   std::string identifier,
+SigmaParseResult::SigmaParseResult(bool valid, SigmaRule rule, std::string identifier,
                                    std::vector<std::string> errors)
     : valid_(valid),
       rule_(std::move(rule)),

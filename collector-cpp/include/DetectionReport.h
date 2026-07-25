@@ -13,11 +13,9 @@ namespace sentinelforge {
 // how many rules were involved, and every DetectionResult produced.
 // Pure data — no logging, no printing, no formatting.
 class DetectionReport {
-public:
-    DetectionReport(const NormalizedEvent& event,
-                     std::size_t rulesLoaded,
-                     std::size_t rulesEvaluated,
-                     std::vector<DetectionResult> results);
+   public:
+    DetectionReport(const NormalizedEvent& event, std::size_t rulesLoaded,
+                    std::size_t rulesEvaluated, std::vector<DetectionResult> results);
 
     const std::string& Timestamp() const;
     const std::string& Hostname() const;
@@ -31,7 +29,7 @@ public:
 
     const std::vector<DetectionResult>& Results() const;
 
-private:
+   private:
     std::string timestamp_;
     std::string hostname_;
     std::string username_;

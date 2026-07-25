@@ -15,10 +15,8 @@ std::size_t CountMatches(const std::vector<DetectionResult>& results) {
 
 }  // namespace
 
-DetectionReport::DetectionReport(const NormalizedEvent& event,
-                                  std::size_t rulesLoaded,
-                                  std::size_t rulesEvaluated,
-                                  std::vector<DetectionResult> results)
+DetectionReport::DetectionReport(const NormalizedEvent& event, std::size_t rulesLoaded,
+                                 std::size_t rulesEvaluated, std::vector<DetectionResult> results)
     : timestamp_(event.Timestamp()),
       hostname_(event.Hostname()),
       username_(event.Username()),

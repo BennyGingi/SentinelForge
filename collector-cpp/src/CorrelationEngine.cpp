@@ -72,8 +72,7 @@ std::string CorrelationEngine::Fingerprint(const CorrelationRule& rule,
 }
 
 std::vector<CorrelationAlert> CorrelationEngine::Process(
-    const NormalizedEvent& event,
-    const std::vector<DetectionResult>& detectionResults) {
+    const NormalizedEvent& event, const std::vector<DetectionResult>& detectionResults) {
     std::vector<CorrelationAlert> alerts;
     if (!settings_.enabled) {
         return alerts;
@@ -87,7 +86,8 @@ std::vector<CorrelationAlert> CorrelationEngine::Process(
     const std::deque<CorrelationHistoryEntry> priorHistory = history_;
 
     for (const auto& rule : rules_) {
-        std::optional<CorrelationAlert> alert = rule->Evaluate(event, priorHistory, detectionResults);
+        std::optional<CorrelationAlert> alert =
+            rule->Evaluate(event, priorHistory, detectionResults);
         if (!alert.has_value()) {
             continue;
         }

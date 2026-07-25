@@ -12,14 +12,14 @@ namespace sentinelforge {
 namespace {
 
 class EventNormalizerTest : public ::testing::Test {
-protected:
+   protected:
     EventNormalizer normalizer_;
 };
 
 TEST_F(EventNormalizerTest, SuccessfulNormalizationFromEvent) {
     const Event event("2026-07-20T14:32:07Z", "WORKSTATION-07", "CORP\\jsmith", "powershell.exe",
-                      "explorer.exe", "powershell.exe -enc SGVsbG8=",
-                      static_cast<std::uint32_t>(4821));
+                      "explorer.exe",
+                      "powershell.exe -enc SGVsbG8=", static_cast<std::uint32_t>(4821));
 
     const NormalizedEvent normalized = normalizer_.Normalize(event);
 

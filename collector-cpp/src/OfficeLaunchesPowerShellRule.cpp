@@ -33,13 +33,10 @@ bool IsOfficeProcess(const std::string& processName) {
 
 }  // namespace
 
-std::string OfficeLaunchesPowerShellRule::Id() const {
-    return "office_launches_powershell";
-}
+std::string OfficeLaunchesPowerShellRule::Id() const { return "office_launches_powershell"; }
 
 std::optional<CorrelationAlert> OfficeLaunchesPowerShellRule::Evaluate(
-    const NormalizedEvent& current,
-    const std::deque<CorrelationHistoryEntry>& history,
+    const NormalizedEvent& current, const std::deque<CorrelationHistoryEntry>& history,
     const std::vector<DetectionResult>& /*detectionResults*/) const {
     if (!IsPowerShell(current.ProcessName())) {
         return std::nullopt;
@@ -104,12 +101,12 @@ std::optional<CorrelationAlert> OfficeLaunchesPowerShellRule::Evaluate(
     contributors.push_back(current);
     const std::size_t matchedCount = contributors.size();
 
-    return CorrelationAlert(
-        "Office application launches PowerShell",
-        "Office process '" + officeEntry->event.ProcessName() +
-            "' was followed by PowerShell within 60 seconds.",
-        "High", 90, current.Timestamp().empty() ? "unknown" : current.Timestamp(), matchedCount,
-        {"T1059.001", "T1204.002"}, std::move(contributors));
+    return CorrelationAlert("Office application launches PowerShell",
+                            "Office process '" + officeEntry->event.ProcessName() +
+                                "' was followed by PowerShell within 60 seconds.",
+                            "High", 90,
+                            current.Timestamp().empty() ? "unknown" : current.Timestamp(),
+                            matchedCount, {"T1059.001", "T1204.002"}, std::move(contributors));
 }
 
 }  // namespace sentinelforge

@@ -93,98 +93,99 @@ void MainWindow::buildUi() {
     root->addWidget(contentSplitter_, 1);
 
     navigation_ = new NavigationController(navRail_, stack_, this);
-    connect(navigation_, &NavigationController::collapsedChanged, this, [this](bool collapsed) {
-        navRail_->setFixedWidth(collapsed ? 56 : 200);
-    });
+    connect(navigation_, &NavigationController::collapsedChanged, this,
+            [this](bool collapsed) { navRail_->setFixedWidth(collapsed ? 56 : 200); });
     navRail_->setFixedWidth(navigation_->isCollapsed() ? 56 : 200);
 
-    navigation_->addPage(QStringLiteral(":/icons/dashboard.svg"), QStringLiteral("Dashboard"),
-                         [this]() {
-        dashboard_ = new DashboardPage(stack_);
-        connect(dashboard_, &DashboardPage::detectionActivated, inspector_,
-                &InspectorPane::showDetection);
-        connect(dashboard_, &DashboardPage::alertActivated, inspector_,
-                &InspectorPane::showAlert);
-        connect(dashboard_, &DashboardPage::openRuleRequested, inspector_,
-                &InspectorPane::showRule);
-        connect(dashboard_, &DashboardPage::openMitreRequested, this,
-                [](const QString& techniqueId) {
-                    const QUrl url = MitreCatalog::attackUrl(techniqueId);
-                    if (url.isValid()) {
-                        QDesktopServices::openUrl(url);
-                    }
+    navigation_->addPage(
+        QStringLiteral(":/icons/dashboard.svg"), QStringLiteral("Dashboard"), [this]() {
+            dashboard_ = new DashboardPage(stack_);
+            connect(dashboard_, &DashboardPage::detectionActivated, inspector_,
+                    &InspectorPane::showDetection);
+            connect(dashboard_, &DashboardPage::alertActivated, inspector_,
+                    &InspectorPane::showAlert);
+            connect(dashboard_, &DashboardPage::openRuleRequested, inspector_,
+                    &InspectorPane::showRule);
+            connect(dashboard_, &DashboardPage::openMitreRequested, this,
+                    [](const QString& techniqueId) {
+                        const QUrl url = MitreCatalog::attackUrl(techniqueId);
+                        if (url.isValid()) {
+                            QDesktopServices::openUrl(url);
+                        }
+                    });
+            inspector_->setDetectionModel(dashboard_->detectionModel());
+            if (source_) {
+                inspector_->setRuleLookup([this](const QString& ruleId) {
+                    RuleInfo info;
+                    QMetaObject::invokeMethod(
+                        source_.get(), "ruleInfo", Qt::BlockingQueuedConnection,
+                        Q_RETURN_ARG(sentinelforge::RuleInfo, info), Q_ARG(QString, ruleId));
+                    return info;
                 });
-        inspector_->setDetectionModel(dashboard_->detectionModel());
-        if (source_) {
-            inspector_->setRuleLookup([this](const QString& ruleId) {
-                RuleInfo info;
-                QMetaObject::invokeMethod(
-                    source_.get(), "ruleInfo", Qt::BlockingQueuedConnection,
-                    Q_RETURN_ARG(sentinelforge::RuleInfo, info), Q_ARG(QString, ruleId));
-                return info;
-            });
-            connect(source_.get(), &ITelemetrySource::detectionsReceived, dashboard_,
-                    &DashboardPage::onDetections, Qt::QueuedConnection);
-            connect(source_.get(), &ITelemetrySource::correlationAlertsReceived, dashboard_,
-                    &DashboardPage::onAlerts, Qt::QueuedConnection);
-            connect(source_.get(), &ITelemetrySource::logLinesReceived, dashboard_,
-                    &DashboardPage::onLogs, Qt::QueuedConnection);
-            connect(source_.get(), &ITelemetrySource::statsUpdated, dashboard_,
-                    &DashboardPage::onStats, Qt::QueuedConnection);
-            connect(source_.get(), &ITelemetrySource::connectionStateChanged, dashboard_,
-                    &DashboardPage::onConnectionState, Qt::QueuedConnection);
-        }
-        return dashboard_;
-    });
+                connect(source_.get(), &ITelemetrySource::detectionsReceived, dashboard_,
+                        &DashboardPage::onDetections, Qt::QueuedConnection);
+                connect(source_.get(), &ITelemetrySource::correlationAlertsReceived, dashboard_,
+                        &DashboardPage::onAlerts, Qt::QueuedConnection);
+                connect(source_.get(), &ITelemetrySource::logLinesReceived, dashboard_,
+                        &DashboardPage::onLogs, Qt::QueuedConnection);
+                connect(source_.get(), &ITelemetrySource::statsUpdated, dashboard_,
+                        &DashboardPage::onStats, Qt::QueuedConnection);
+                connect(source_.get(), &ITelemetrySource::connectionStateChanged, dashboard_,
+                        &DashboardPage::onConnectionState, Qt::QueuedConnection);
+            }
+            return dashboard_;
+        });
 
-    navigation_->addPage(QStringLiteral(":/icons/detections.svg"), QStringLiteral("Detections"),
-                         [this]() {
-        return new PlaceholderPage(
-            QStringLiteral("Detections"),
-            QStringLiteral("Investigative detection history with search, column filters, and "
-                           "export will land here. The live feed remains on Dashboard."),
-            stack_);
-    });
-    navigation_->addPage(QStringLiteral(":/icons/correlation.svg"), QStringLiteral("Correlation"),
-                         [this]() {
-        return new PlaceholderPage(
-            QStringLiteral("Correlation"),
-            QStringLiteral("Full correlation alert history and chain inspection will land here."),
-            stack_);
-    });
-    navigation_->addPage(QStringLiteral(":/icons/mitre.svg"), QStringLiteral("MITRE ATT&CK"),
-                         [this]() {
-        return new PlaceholderPage(
-            QStringLiteral("MITRE ATT&CK"),
-            QStringLiteral("Technique coverage heatmaps and control mapping are planned next."),
-            stack_);
-    });
-    navigation_->addPage(QStringLiteral(":/icons/timeline.svg"), QStringLiteral("Threat Timeline"),
-                         [this]() {
-        return new PlaceholderPage(
-            QStringLiteral("Threat Timeline"),
-            QStringLiteral("Chronological attack-path visualization is deferred."), stack_);
-    });
-    navigation_->addPage(QStringLiteral(":/icons/infrastructure.svg"),
-                         QStringLiteral("Infrastructure"), [this]() {
-        return new PlaceholderPage(
-            QStringLiteral("Infrastructure"),
-            QStringLiteral("Docker and Kubernetes health views share this page (tabbed later)."),
-            stack_);
-    });
+    navigation_->addPage(
+        QStringLiteral(":/icons/detections.svg"), QStringLiteral("Detections"), [this]() {
+            return new PlaceholderPage(
+                QStringLiteral("Detections"),
+                QStringLiteral("Investigative detection history with search, column filters, and "
+                               "export will land here. The live feed remains on Dashboard."),
+                stack_);
+        });
+    navigation_->addPage(
+        QStringLiteral(":/icons/correlation.svg"), QStringLiteral("Correlation"), [this]() {
+            return new PlaceholderPage(
+                QStringLiteral("Correlation"),
+                QStringLiteral(
+                    "Full correlation alert history and chain inspection will land here."),
+                stack_);
+        });
+    navigation_->addPage(
+        QStringLiteral(":/icons/mitre.svg"), QStringLiteral("MITRE ATT&CK"), [this]() {
+            return new PlaceholderPage(
+                QStringLiteral("MITRE ATT&CK"),
+                QStringLiteral("Technique coverage heatmaps and control mapping are planned next."),
+                stack_);
+        });
+    navigation_->addPage(
+        QStringLiteral(":/icons/timeline.svg"), QStringLiteral("Threat Timeline"), [this]() {
+            return new PlaceholderPage(
+                QStringLiteral("Threat Timeline"),
+                QStringLiteral("Chronological attack-path visualization is deferred."), stack_);
+        });
+    navigation_->addPage(
+        QStringLiteral(":/icons/infrastructure.svg"), QStringLiteral("Infrastructure"), [this]() {
+            return new PlaceholderPage(
+                QStringLiteral("Infrastructure"),
+                QStringLiteral(
+                    "Docker and Kubernetes health views share this page (tabbed later)."),
+                stack_);
+        });
 
     railLayout->addStretch();
 
-    navigation_->addPage(QStringLiteral(":/icons/settings.svg"), QStringLiteral("Settings"),
-                         [this]() {
-        auto* aboutButton = new QPushButton(QStringLiteral("About SentinelForge…"));
-        connect(aboutButton, &QPushButton::clicked, aboutDialog_, &AboutDialog::showAbout);
-        return new PlaceholderPage(
-            QStringLiteral("Settings"),
-            QStringLiteral(
-                "Console preferences and collector connection settings will appear here."),
-            stack_, aboutButton);
-    });
+    navigation_->addPage(
+        QStringLiteral(":/icons/settings.svg"), QStringLiteral("Settings"), [this]() {
+            auto* aboutButton = new QPushButton(QStringLiteral("About SentinelForge…"));
+            connect(aboutButton, &QPushButton::clicked, aboutDialog_, &AboutDialog::showAbout);
+            return new PlaceholderPage(
+                QStringLiteral("Settings"),
+                QStringLiteral(
+                    "Console preferences and collector connection settings will appear here."),
+                stack_, aboutButton);
+        });
 
     // Shortcuts (also listed under Help → Keyboard Shortcuts).
     auto addShortcut = [this](const QKeySequence& seq, auto fn) {
@@ -318,20 +319,19 @@ void MainWindow::buildMenus() {
     helpMenu->addAction(QStringLiteral("Keyboard Shortcuts"), this, [this]() {
         QMessageBox::information(
             this, QStringLiteral("Keyboard Shortcuts"),
-            QStringLiteral(
-                "Ctrl+F / /\tFocus search\n"
-                "Space\tPause / Resume view\n"
-                "F5\tResume live\n"
-                "Esc\tClose inspector / clear search\n"
-                "Ctrl+D\tFocus detection table\n"
-                "Ctrl+L\tFocus logs\n"
-                "J / K\tNext / previous detection\n"
-                "Enter\tOpen inspector\n"
-                "C / Shift+C\tCopy row text / JSON\n"
-                "Ctrl+Home / End\tOldest / newest\n"
-                "Ctrl+1…7\tSwitch nav page\n\n"
-                "Pause freezes the view only. The collector keeps running;\n"
-                "the view buffer is bounded and discloses any drops."));
+            QStringLiteral("Ctrl+F / /\tFocus search\n"
+                           "Space\tPause / Resume view\n"
+                           "F5\tResume live\n"
+                           "Esc\tClose inspector / clear search\n"
+                           "Ctrl+D\tFocus detection table\n"
+                           "Ctrl+L\tFocus logs\n"
+                           "J / K\tNext / previous detection\n"
+                           "Enter\tOpen inspector\n"
+                           "C / Shift+C\tCopy row text / JSON\n"
+                           "Ctrl+Home / End\tOldest / newest\n"
+                           "Ctrl+1…7\tSwitch nav page\n\n"
+                           "Pause freezes the view only. The collector keeps running;\n"
+                           "the view buffer is bounded and discloses any drops."));
     });
     helpMenu->addAction(QStringLiteral("About SentinelForge…"), this,
                         [this]() { aboutDialog_->showAbout(); });
@@ -364,8 +364,7 @@ void MainWindow::restoreState() {
     if (!geometry.isEmpty()) {
         restoreGeometry(geometry);
     }
-    contentSplitter_->restoreState(
-        settings.value(QStringLiteral("contentSplitter")).toByteArray());
+    contentSplitter_->restoreState(settings.value(QStringLiteral("contentSplitter")).toByteArray());
 }
 
 void MainWindow::saveState() const {

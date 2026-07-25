@@ -15,13 +15,13 @@ namespace sentinelforge {
 // label (its rule name if known, otherwise its filename) and every reason
 // it was rejected.
 class RejectedRule {
-public:
+   public:
     RejectedRule(std::string identifier, std::vector<std::string> errors);
 
     const std::string& Identifier() const;
     const std::vector<std::string>& Errors() const;
 
-private:
+   private:
     std::string identifier_;
     std::vector<std::string> errors_;
 };
@@ -29,14 +29,14 @@ private:
 // Outcome of loading a rules directory: every accepted Rule, plus details
 // of every rejection. Discovered = Accepted + Rejected.
 class RuleLoadResult {
-public:
+   public:
     RuleLoadResult(std::vector<Rule> accepted, std::vector<RejectedRule> rejected);
 
     const std::vector<Rule>& Accepted() const;
     const std::vector<RejectedRule>& Rejected() const;
     std::size_t Discovered() const;
 
-private:
+   private:
     std::vector<Rule> accepted_;
     std::vector<RejectedRule> rejected_;
 };
@@ -45,7 +45,7 @@ private:
 // failures are retained so validation can convert them into RejectedRule
 // entries without re-reading the file.
 class DiscoveredRule {
-public:
+   public:
     static DiscoveredRule FromParsed(std::filesystem::path source, Rule rule);
     static DiscoveredRule FromParseError(std::filesystem::path source, std::string error);
 
@@ -54,7 +54,7 @@ public:
     const Rule& ParsedRule() const;
     const std::string& ParseError() const;
 
-private:
+   private:
     DiscoveredRule(std::filesystem::path source, Rule rule, bool parseSucceeded,
                    std::string parseError);
 
@@ -69,12 +69,12 @@ private:
 // Application can time them independently via PerformanceProfiler.
 // LoadDirectory() remains the single-call convenience that runs both.
 class RuleLoader {
-public:
+   public:
     std::vector<DiscoveredRule> DiscoverAndParse(const std::filesystem::path& directory) const;
     RuleLoadResult ValidateRules(const std::vector<DiscoveredRule>& discovered) const;
     RuleLoadResult LoadDirectory(const std::filesystem::path& directory) const;
 
-private:
+   private:
     RuleParser ruleParser_;
     RuleValidator ruleValidator_;
 };

@@ -4,15 +4,9 @@
 
 namespace sentinelforge {
 
-SigmaRule::SigmaRule(std::string title,
-                     std::string id,
-                     std::string status,
-                     std::string description,
-                     std::string logsourceCategory,
-                     std::string processName,
-                     std::string commandLineContains,
-                     std::string condition,
-                     std::string level,
+SigmaRule::SigmaRule(std::string title, std::string id, std::string status, std::string description,
+                     std::string logsourceCategory, std::string processName,
+                     std::string commandLineContains, std::string condition, std::string level,
                      std::vector<std::string> tags)
     : title_(std::move(title)),
       id_(std::move(id)),

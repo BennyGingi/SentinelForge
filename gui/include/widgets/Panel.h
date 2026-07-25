@@ -11,14 +11,14 @@ namespace sentinelforge {
 // WA_StyledBackground). Every dashboard card is a Panel.
 class Panel : public QFrame {
     Q_OBJECT
-public:
+   public:
     explicit Panel(const QString& title, QWidget* parent = nullptr);
 
     void setContent(QWidget* body);
     void setHeaderAction(QWidget* action);
     QVBoxLayout* contentLayout() const { return contentLayout_; }
 
-private:
+   private:
     QLabel* titleLabel_ = nullptr;
     QHBoxLayout* headerLayout_ = nullptr;
     QVBoxLayout* rootLayout_ = nullptr;

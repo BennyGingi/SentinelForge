@@ -12,11 +12,11 @@ namespace sentinelforge {
 // Modeless rule detail — analyst can keep the alert list visible.
 class RuleDetailDialog final : public QDialog {
     Q_OBJECT
-public:
+   public:
     explicit RuleDetailDialog(QWidget* parent = nullptr);
     void showRule(const RuleInfo& info);
 
-private:
+   private:
     QLabel* title_ = nullptr;
     QLabel* meta_ = nullptr;
     QTextEdit* falsePositives_ = nullptr;

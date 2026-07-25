@@ -48,15 +48,14 @@ QString detectionToJson(const Detection& d) {
 
 }  // namespace
 
-DetectionTableView::DetectionTableView(Mode mode, QWidget* parent)
-    : QWidget(parent), mode_(mode) {
+DetectionTableView::DetectionTableView(Mode mode, QWidget* parent) : QWidget(parent), mode_(mode) {
     auto* root = new QVBoxLayout(this);
     root->setContentsMargins(0, 0, 0, 0);
     root->setSpacing(0);
 
-    panel_ = new Panel(mode_ == Mode::Live ? QStringLiteral("Recent detections")
-                                           : QStringLiteral("Detections"),
-                       this);
+    panel_ = new Panel(
+        mode_ == Mode::Live ? QStringLiteral("Recent detections") : QStringLiteral("Detections"),
+        this);
 
     auto* toolbar = new QWidget(panel_);
     auto* toolbarLayout = new QHBoxLayout(toolbar);
@@ -161,9 +160,8 @@ DetectionTableView::DetectionTableView(Mode mode, QWidget* parent)
     connect(searchDebounce_, &QTimer::timeout, this, &DetectionTableView::onSearchDebounce);
 
     auto updateCounts = [this]() {
-        resultCount_->setText(QStringLiteral("%1 → %2 shown")
-                                  .arg(model_->rowCount())
-                                  .arg(proxy_->rowCount()));
+        resultCount_->setText(
+            QStringLiteral("%1 → %2 shown").arg(model_->rowCount()).arg(proxy_->rowCount()));
         showEmptyState();
     };
     connect(model_, &QAbstractItemModel::rowsInserted, this, [this, updateCounts]() {
@@ -396,9 +394,8 @@ void DetectionTableView::onContextMenu(const QPoint& pos) {
     menu.addAction(QStringLiteral("Copy as JSON"), this, [this]() { copySelectionAsJson(); });
     menu.addAction(QStringLiteral("Copy Command Line"), this,
                    [copy]() { QApplication::clipboard()->setText(copy.commandLine); });
-    menu.addAction(QStringLiteral("Copy PID"), this, [copy]() {
-        QApplication::clipboard()->setText(QString::number(copy.pid));
-    });
+    menu.addAction(QStringLiteral("Copy PID"), this,
+                   [copy]() { QApplication::clipboard()->setText(QString::number(copy.pid)); });
     menu.addAction(QStringLiteral("Copy Process"), this,
                    [copy]() { QApplication::clipboard()->setText(copy.processName); });
     menu.addSeparator();

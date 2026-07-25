@@ -134,7 +134,8 @@ void InspectorPane::buildUi() {
         confLayout->addWidget(confidencePct_);
         triageLayout->addWidget(conf);
     }
-    triageLayout->addWidget(makeKeyValue(QStringLiteral("Occurrences"), &occurrencesValue_, triage));
+    triageLayout->addWidget(
+        makeKeyValue(QStringLiteral("Occurrences"), &occurrencesValue_, triage));
     triageLayout->addWidget(makeKeyValue(QStringLiteral("Host"), &hostValue_, triage));
     triageLayout->addWidget(makeKeyValue(QStringLiteral("User"), &userValue_, triage));
     triageLayout->addWidget(makeKeyValue(QStringLiteral("Time"), &timeValue_, triage));
@@ -143,7 +144,8 @@ void InspectorPane::buildUi() {
     bodyLayout->addWidget(makeDivider(detectionRoot_));
 
     // --- Process lineage ---
-    lineageSection_ = new CollapsibleSection(QStringLiteral("Process lineage"), true, detectionRoot_);
+    lineageSection_ =
+        new CollapsibleSection(QStringLiteral("Process lineage"), true, detectionRoot_);
     auto* lineage = new QWidget(lineageSection_);
     auto* lineageLayout = new QVBoxLayout(lineage);
     lineageLayout->setContentsMargins(0, 0, 0, 0);
@@ -184,7 +186,8 @@ void InspectorPane::buildUi() {
     bodyLayout->addWidget(makeDivider(detectionRoot_));
 
     // --- Related ---
-    relatedSection_ = new CollapsibleSection(QStringLiteral("Related detections"), false, detectionRoot_);
+    relatedSection_ =
+        new CollapsibleSection(QStringLiteral("Related detections"), false, detectionRoot_);
     auto* related = new QWidget(relatedSection_);
     relatedList_ = new QVBoxLayout(related);
     relatedList_->setContentsMargins(0, 0, 0, 0);
@@ -321,11 +324,13 @@ void InspectorPane::renderDetection(const Detection& detection, bool pushHistory
     occurrencesValue_->setText(QString::number(detection.occurrences));
     hostValue_->setText(detection.host);
     userValue_->setText(detection.user);
-    timeValue_->setText(timefmt::tooltipTime(detection.timestampMs, QDateTime::currentMSecsSinceEpoch()));
+    timeValue_->setText(
+        timefmt::tooltipTime(detection.timestampMs, QDateTime::currentMSecsSinceEpoch()));
 
     parentLine_->setText(QStringLiteral("%1  (PID %2)")
-                             .arg(detection.parentProcessName.isEmpty() ? QStringLiteral("—")
-                                                                        : detection.parentProcessName)
+                             .arg(detection.parentProcessName.isEmpty()
+                                      ? QStringLiteral("—")
+                                      : detection.parentProcessName)
                              .arg(detection.parentPid));
     processLine_->setText(
         QStringLiteral("%1  (PID %2)").arg(detection.processName).arg(detection.pid));
@@ -351,11 +356,12 @@ void InspectorPane::renderDetection(const Detection& detection, bool pushHistory
             }
             auto* btn = new QPushButton(
                 QStringLiteral("%1  %2  %3")
-                    .arg(severityLabel(related->severity), timefmt::columnTime(related->timestampMs),
-                         related->ruleName),
+                    .arg(severityLabel(related->severity),
+                         timefmt::columnTime(related->timestampMs), related->ruleName),
                 relatedHost);
             const Detection copy = *related;
-            connect(btn, &QPushButton::clicked, this, [this, copy]() { renderDetection(copy, true); });
+            connect(btn, &QPushButton::clicked, this,
+                    [this, copy]() { renderDetection(copy, true); });
             relatedList_->addWidget(btn);
             ++shown;
         }
@@ -475,9 +481,7 @@ void InspectorPane::goBack() {
     backButton_->setVisible(!backStack_.isEmpty());
 }
 
-void InspectorPane::openRuleDetail() {
-    showRule(current_.ruleId);
-}
+void InspectorPane::openRuleDetail() { showRule(current_.ruleId); }
 
 void InspectorPane::showRule(const QString& ruleId) {
     if (!ruleLookup_) {

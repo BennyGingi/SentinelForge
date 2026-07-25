@@ -28,7 +28,7 @@ DetectionFilterState parseSearchQuery(const QString& query);
 
 class DetectionFilterProxy final : public QSortFilterProxyModel {
     Q_OBJECT
-public:
+   public:
     explicit DetectionFilterProxy(QObject* parent = nullptr);
 
     void setFilterState(DetectionFilterState state);
@@ -36,11 +36,11 @@ public:
     QString rawQuery() const { return rawQuery_; }
     void setRawQuery(const QString& query);
 
-protected:
+   protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override;
     bool lessThan(const QModelIndex& left, const QModelIndex& right) const override;
 
-private:
+   private:
     bool matchesTokens(const QModelIndex& srcIndex) const;
 
     DetectionFilterState state_;

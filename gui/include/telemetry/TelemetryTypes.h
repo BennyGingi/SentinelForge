@@ -7,13 +7,7 @@
 
 namespace sentinelforge {
 
-enum class Severity : quint8 {
-    Info = 0,
-    Low,
-    Medium,
-    High,
-    Critical
-};
+enum class Severity : quint8 { Info = 0, Low, Medium, High, Critical };
 
 enum class ConnectionState : quint8 {
     Disconnected = 0,
@@ -23,14 +17,7 @@ enum class ConnectionState : quint8 {
     Failed
 };
 
-enum class LogLevel : quint8 {
-    Trace = 0,
-    Debug,
-    Info,
-    Warn,
-    Error,
-    Fatal
-};
+enum class LogLevel : quint8 { Trace = 0, Debug, Info, Warn, Error, Fatal };
 
 enum class IocType : quint8 {
     Process = 0,
@@ -64,7 +51,7 @@ struct Detection {
     QString ruleDescription;
     QString detectionReason;
     QString recommendedAction;
-    int confidence = 0;    // 0–100
+    int confidence = 0;  // 0–100
     int occurrences = 1;
     QString host;
     QString user;
@@ -207,20 +194,29 @@ inline QString iocTypeLabel(IocType type) {
 // member rather than failing the batch over one bad field.
 inline Severity parseSeverity(const QString& text) {
     const QString upper = text.trimmed().toUpper();
-    if (upper == QLatin1String("CRITICAL")) return Severity::Critical;
-    if (upper == QLatin1String("HIGH")) return Severity::High;
-    if (upper == QLatin1String("MEDIUM")) return Severity::Medium;
-    if (upper == QLatin1String("LOW")) return Severity::Low;
+    if (upper == QLatin1String("CRITICAL"))
+        return Severity::Critical;
+    if (upper == QLatin1String("HIGH"))
+        return Severity::High;
+    if (upper == QLatin1String("MEDIUM"))
+        return Severity::Medium;
+    if (upper == QLatin1String("LOW"))
+        return Severity::Low;
     return Severity::Info;
 }
 
 inline LogLevel parseLogLevel(const QString& text) {
     const QString upper = text.trimmed().toUpper();
-    if (upper == QLatin1String("TRACE")) return LogLevel::Trace;
-    if (upper == QLatin1String("DEBUG")) return LogLevel::Debug;
-    if (upper == QLatin1String("WARN") || upper == QLatin1String("WARNING")) return LogLevel::Warn;
-    if (upper == QLatin1String("ERROR")) return LogLevel::Error;
-    if (upper == QLatin1String("FATAL")) return LogLevel::Fatal;
+    if (upper == QLatin1String("TRACE"))
+        return LogLevel::Trace;
+    if (upper == QLatin1String("DEBUG"))
+        return LogLevel::Debug;
+    if (upper == QLatin1String("WARN") || upper == QLatin1String("WARNING"))
+        return LogLevel::Warn;
+    if (upper == QLatin1String("ERROR"))
+        return LogLevel::Error;
+    if (upper == QLatin1String("FATAL"))
+        return LogLevel::Fatal;
     return LogLevel::Info;
 }
 

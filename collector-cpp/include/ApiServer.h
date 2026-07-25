@@ -35,7 +35,7 @@ struct ApiSettings {
 // unaware this class exists beyond appending to the TelemetryStore it's
 // handed; ApiServer only ever reads from it.
 class ApiServer {
-public:
+   public:
     ApiServer(TelemetryStore& store, ApiSettings settings, Logger& logger);
     ~ApiServer();
 
@@ -51,7 +51,7 @@ public:
     // multiple times or without a prior Start().
     void Stop();
 
-private:
+   private:
     void RegisterRoutes();
     void Run();
 

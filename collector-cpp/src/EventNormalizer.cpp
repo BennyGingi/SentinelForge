@@ -24,20 +24,15 @@ std::string OptionalString(const nlohmann::json& json, const char* field) {
 }  // namespace
 
 NormalizedEvent EventNormalizer::Normalize(const Event& event) const {
-    return NormalizedEvent(event.Timestamp(),
-                           event.Hostname(),
-                           event.Username(),
-                           /*eventType=*/"",
-                           event.ProcessName(),
-                           event.ParentProcess(),
+    return NormalizedEvent(event.Timestamp(), event.Hostname(), event.Username(),
+                           /*eventType=*/"", event.ProcessName(), event.ParentProcess(),
                            event.CommandLine(),
                            /*filePath=*/"",
                            /*hash=*/"",
                            /*sourceIp=*/"",
                            /*destinationIp=*/"",
                            /*destinationPort=*/"",
-                           /*severity=*/"",
-                           kJsonProvider);
+                           /*severity=*/"", kJsonProvider);
 }
 
 NormalizedEvent EventNormalizer::NormalizeJson(const nlohmann::json& json) const {
@@ -50,20 +45,14 @@ NormalizedEvent EventNormalizer::NormalizeJson(const nlohmann::json& json) const
         provider = kJsonProvider;
     }
 
-    return NormalizedEvent(OptionalString(json, "timestamp"),
-                           OptionalString(json, "hostname"),
-                           OptionalString(json, "username"),
-                           OptionalString(json, "event_type"),
-                           OptionalString(json, "process_name"),
-                           OptionalString(json, "parent_process"),
-                           OptionalString(json, "command_line"),
-                           OptionalString(json, "file_path"),
-                           OptionalString(json, "hash"),
-                           OptionalString(json, "source_ip"),
-                           OptionalString(json, "destination_ip"),
-                           OptionalString(json, "destination_port"),
-                           OptionalString(json, "severity"),
-                           std::move(provider));
+    return NormalizedEvent(
+        OptionalString(json, "timestamp"), OptionalString(json, "hostname"),
+        OptionalString(json, "username"), OptionalString(json, "event_type"),
+        OptionalString(json, "process_name"), OptionalString(json, "parent_process"),
+        OptionalString(json, "command_line"), OptionalString(json, "file_path"),
+        OptionalString(json, "hash"), OptionalString(json, "source_ip"),
+        OptionalString(json, "destination_ip"), OptionalString(json, "destination_port"),
+        OptionalString(json, "severity"), std::move(provider));
 }
 
 }  // namespace sentinelforge

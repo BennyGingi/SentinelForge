@@ -21,7 +21,7 @@ class DetectionFilterProxy;
 
 class DetectionTableView final : public QWidget {
     Q_OBJECT
-public:
+   public:
     enum class Mode { Live, Investigative };
 
     explicit DetectionTableView(Mode mode, QWidget* parent = nullptr);
@@ -43,12 +43,12 @@ public:
     void copySelectionAsJson();
     bool isFilteredEmpty() const;
 
-signals:
+   signals:
     void detectionActivated(sentinelforge::Detection detection);
     void openRuleRequested(QString ruleId);
     void openMitreRequested(QString techniqueId);
 
-private:
+   private:
     void showEmptyState();
     void onDoubleClicked(const QModelIndex& index);
     void onFilterChanged();

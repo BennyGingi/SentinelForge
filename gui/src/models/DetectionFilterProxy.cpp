@@ -8,8 +8,8 @@ namespace sentinelforge {
 
 DetectionFilterState parseSearchQuery(const QString& query) {
     DetectionFilterState state;
-    const QStringList parts = query.split(QRegularExpression(QStringLiteral("\\s+")),
-                                          Qt::SkipEmptyParts);
+    const QStringList parts =
+        query.split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts);
     for (const QString& part : parts) {
         const int colon = part.indexOf(QLatin1Char(':'));
         if (colon > 0) {
@@ -37,8 +37,7 @@ DetectionFilterState parseSearchQuery(const QString& query) {
             } else if (token.field == QLatin1String("rule")) {
                 state.rule = token.value;
             } else if (token.field == QLatin1String("technique") ||
-                       token.field == QLatin1String("mitre") ||
-                       token.field == QLatin1String("t")) {
+                       token.field == QLatin1String("mitre") || token.field == QLatin1String("t")) {
                 state.technique = token.value;
             } else if (token.field == QLatin1String("user") ||
                        token.field == QLatin1String("username")) {

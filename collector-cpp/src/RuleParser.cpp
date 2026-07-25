@@ -35,14 +35,10 @@ Rule RuleParser::ParseFile(const std::filesystem::path& path) const {
         throw std::runtime_error("Malformed JSON in " + path.string() + ": " + e.what());
     }
 
-    return Rule(OptionalString(json, "rule_name"),
-                OptionalString(json, "process_name"),
-                OptionalString(json, "command_line_contains"),
-                OptionalString(json, "severity"),
-                OptionalString(json, "mitre"),
-                OptionalString(json, "author"),
-                OptionalString(json, "version"),
-                OptionalString(json, "description"),
+    return Rule(OptionalString(json, "rule_name"), OptionalString(json, "process_name"),
+                OptionalString(json, "command_line_contains"), OptionalString(json, "severity"),
+                OptionalString(json, "mitre"), OptionalString(json, "author"),
+                OptionalString(json, "version"), OptionalString(json, "description"),
                 OptionalString(json, "created_date"));
 }
 

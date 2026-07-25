@@ -20,8 +20,7 @@ NormalizedEvent MakeNormalized(const std::string& processName, const std::string
                            "explorer.exe", commandLine, "", "", "", "", "", "", "json");
 }
 
-Rule MakeRule(const std::string& name,
-              const std::string& processName,
+Rule MakeRule(const std::string& name, const std::string& processName,
               const std::string& commandLineContains) {
     return Rule(name, processName, commandLineContains, "High", "T1059.001", "SentinelForge", "1.0",
                 "test rule", "2024-01-01");
@@ -34,7 +33,7 @@ std::size_t CountMatches(const std::vector<DetectionResult>& results) {
 }
 
 class DetectionEngineTest : public ::testing::Test {
-protected:
+   protected:
     DetectionEngine engine_;
     EventNormalizer normalizer_;
 };
@@ -47,7 +46,8 @@ TEST_F(DetectionEngineTest, MatchingRuleProducesOneDetection) {
     const std::vector<DetectionResult> results = engine_.Evaluate(event, rules);
 
     ASSERT_EQ(results.size(), 1u) << "One rule should yield one evaluation result";
-    EXPECT_EQ(CountMatches(results), 1u) << "The matching rule should produce exactly one detection";
+    EXPECT_EQ(CountMatches(results), 1u)
+        << "The matching rule should produce exactly one detection";
     EXPECT_TRUE(results.front().Matched()) << "The single result should be a match";
 }
 
@@ -58,7 +58,8 @@ TEST_F(DetectionEngineTest, NonMatchingRuleProducesZeroDetections) {
     const std::vector<DetectionResult> results = engine_.Evaluate(event, rules);
 
     ASSERT_EQ(results.size(), 1u) << "One rule should still yield one evaluation result";
-    EXPECT_EQ(CountMatches(results), 0u) << "A rule that does not apply should produce no detection";
+    EXPECT_EQ(CountMatches(results), 0u)
+        << "A rule that does not apply should produce no detection";
     EXPECT_FALSE(results.front().Matched()) << "The single result should not be a match";
 }
 
@@ -66,9 +67,9 @@ TEST_F(DetectionEngineTest, MultipleRulesReturnCorrectMatchCount) {
     const NormalizedEvent event =
         MakeNormalized("powershell.exe", "powershell.exe -enc ZQBjAGgAbwA=");
     const std::vector<Rule> rules = {
-        MakeRule("Encoded PowerShell", "powershell.exe", "-enc"),   // matches
-        MakeRule("Any PowerShell", "powershell.exe", "powershell"), // matches (case-insensitive)
-        MakeRule("Cmd Whoami", "cmd.exe", "whoami"),                // process mismatch
+        MakeRule("Encoded PowerShell", "powershell.exe", "-enc"),    // matches
+        MakeRule("Any PowerShell", "powershell.exe", "powershell"),  // matches (case-insensitive)
+        MakeRule("Cmd Whoami", "cmd.exe", "whoami"),                 // process mismatch
     };
 
     const std::vector<DetectionResult> results = engine_.Evaluate(event, rules);

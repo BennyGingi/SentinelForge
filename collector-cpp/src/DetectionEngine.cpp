@@ -10,7 +10,7 @@ namespace {
 std::string ToLower(const std::string& text) {
     std::string result = text;
     std::transform(result.begin(), result.end(), result.begin(),
-                    [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
     return result;
 }
 
@@ -25,7 +25,7 @@ bool EqualsCaseInsensitive(const std::string& lhs, const std::string& rhs) {
 }  // namespace
 
 std::vector<DetectionResult> DetectionEngine::Evaluate(const NormalizedEvent& event,
-                                                        const std::vector<Rule>& rules) const {
+                                                       const std::vector<Rule>& rules) const {
     std::vector<DetectionResult> results;
     results.reserve(rules.size());
     for (const auto& rule : rules) {
@@ -34,8 +34,7 @@ std::vector<DetectionResult> DetectionEngine::Evaluate(const NormalizedEvent& ev
     return results;
 }
 
-DetectionResult DetectionEngine::EvaluateOne(const NormalizedEvent& event,
-                                             const Rule& rule) const {
+DetectionResult DetectionEngine::EvaluateOne(const NormalizedEvent& event, const Rule& rule) const {
     const bool processMatches = EqualsCaseInsensitive(event.ProcessName(), rule.ProcessName());
     const bool commandLineMatches =
         ContainsCaseInsensitive(event.CommandLine(), rule.CommandLineContains());
@@ -44,9 +43,10 @@ DetectionResult DetectionEngine::EvaluateOne(const NormalizedEvent& event,
     std::string reason;
     if (matched) {
         reason = "process_name matched '" + rule.ProcessName() + "' and command_line contains '" +
-                  rule.CommandLineContains() + "'";
+                 rule.CommandLineContains() + "'";
     } else if (!processMatches) {
-        reason = "process_name '" + event.ProcessName() + "' does not match '" + rule.ProcessName() + "'";
+        reason = "process_name '" + event.ProcessName() + "' does not match '" +
+                 rule.ProcessName() + "'";
     } else {
         reason = "command_line does not contain '" + rule.CommandLineContains() + "'";
     }

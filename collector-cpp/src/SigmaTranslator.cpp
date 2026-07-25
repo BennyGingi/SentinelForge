@@ -13,10 +13,14 @@ std::string MapLevel(const std::string& level) {
     std::transform(lower.begin(), lower.end(), lower.begin(),
                    [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
-    if (lower == "critical") return "Critical";
-    if (lower == "high") return "High";
-    if (lower == "medium") return "Medium";
-    if (lower == "low" || lower == "informational") return "Low";
+    if (lower == "critical")
+        return "Critical";
+    if (lower == "high")
+        return "High";
+    if (lower == "medium")
+        return "Medium";
+    if (lower == "low" || lower == "informational")
+        return "Low";
     // Pass through unchanged so RuleValidator can reject unknown values.
     if (level.empty()) {
         return "";

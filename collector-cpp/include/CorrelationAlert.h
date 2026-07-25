@@ -12,13 +12,9 @@ namespace sentinelforge {
 
 // Immutable outcome of a behavioral correlation rule evaluation.
 class CorrelationAlert {
-public:
-    CorrelationAlert(std::string title,
-                     std::string description,
-                     std::string severity,
-                     std::uint8_t confidence,
-                     std::string timestamp,
-                     std::size_t matchedEventCount,
+   public:
+    CorrelationAlert(std::string title, std::string description, std::string severity,
+                     std::uint8_t confidence, std::string timestamp, std::size_t matchedEventCount,
                      std::vector<std::string> mitreTechniques,
                      std::vector<NormalizedEvent> contributingEvents);
 
@@ -31,7 +27,7 @@ public:
     const std::vector<std::string>& MitreTechniques() const;
     const std::vector<NormalizedEvent>& ContributingEvents() const;
 
-private:
+   private:
     std::string title_;
     std::string description_;
     std::string severity_;
