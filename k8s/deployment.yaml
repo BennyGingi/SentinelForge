@@ -15,17 +15,48 @@ spec:
       labels:
         app: collector
     spec:
+      securityContext:
+        runAsNonRoot: true
+        # Matches docker/collector.Dockerfile's `useradd --uid 10001` --
+        # kubelet cannot verify runAsNonRoot against a non-numeric image
+        # USER (confirmed empirically: without this, pod creation fails with
+        # "container has runAsNonRoot and image has non-numeric user
+        # (collector), cannot verify user is non-root").
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: collector
           image: sentinelforge-collector:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8787
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           volumeMounts:
             - name: rules
               mountPath: /src/rules
             - name: sigma-rules
               mountPath: /src/sigma-rules
+            # readOnlyRootFilesystem means every path the collector writes to
+            # (EventMonitor's incoming/processed/failed, JsonExporter's
+            # output, Logger's log file) needs an explicit writable mount --
+            # all three self-create their own subdirectories/parent dirs at
+            # startup (EventMonitor.cpp's createOne lambda, Logger.cpp and
+            # JsonExporter.cpp's parent_path() + create_directories calls),
+            # so one emptyDir per top-level writable path is enough; nothing
+            # needs to be pre-populated.
+            - name: events
+              mountPath: /src/events
+            - name: output
+              mountPath: /src/output
+            - name: logs
+              mountPath: /src/logs
           readinessProbe:
             httpGet:
               path: /health
@@ -47,3 +78,9 @@ spec:
         - name: sigma-rules
           configMap:
             name: collector-sigma-rules
+        - name: events
+          emptyDir: {}
+        - name: output
+          emptyDir: {}
+        - name: logs
+          emptyDir: {}

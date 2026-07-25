@@ -34,6 +34,31 @@ to the collector's Service instead of a locally-published container port.
   points `rules_directory`/`sigma.rules_directory` at — nothing collector-side
   changed for Kubernetes, only how those directories get populated.
   `readinessProbe`/`livenessProbe` both hit `GET /health` on `8787`.
+
+  **Hardened `securityContext` (Issue #041).** Pod-level `runAsNonRoot: true`
+  plus `seccompProfile: RuntimeDefault`; container-level
+  `allowPrivilegeEscalation: false`, `readOnlyRootFilesystem: true`, and
+  `capabilities.drop: [ALL]` — enough to pass Pod Security Standards
+  "restricted" admission. Two things this forced:
+
+  - **`runAsUser: 10001`/`runAsGroup: 10001`, matched to an explicit
+    `--uid 10001` in `docker/collector.Dockerfile`'s `useradd`.** Without a
+    numeric UID, `runAsNonRoot: true` fails pod creation outright —
+    confirmed empirically: `Error: container has runAsNonRoot and image has
+    non-numeric user (collector), cannot verify user is non-root`. Kubelet
+    has no way to resolve a username to a UID from inside the image at
+    admission time; it needs the number in the manifest to match.
+  - **Three new `emptyDir` volumes** (`events` → `/src/events`, `output` →
+    `/src/output`, `logs` → `/src/logs`), because `readOnlyRootFilesystem`
+    means every path the collector writes to needs an explicit writable
+    mount. No pre-population needed: `EventMonitor`'s `createOne` lambda and
+    `Logger`/`JsonExporter`'s `parent_path()` + `create_directories` calls
+    already self-create their subdirectories at startup against whatever
+    directory is mounted there. Verified end-to-end after applying the
+    hardened manifest: `kubectl exec ... -- touch /testfile` fails with
+    `Read-only file system` while `/src/events`, `/src/output`, `/src/logs`
+    remain writable, and dropping a real event via `kubectl cp` into
+    `/src/events/incoming` still produces a detection through `/detections`.
 - **`service.yaml`** — `ClusterIP`, port `8787`. Selects `app: collector`, so
   it always routes to whatever pod currently matches that label — this is
   the piece that makes the self-healing demo actually demonstrate anything

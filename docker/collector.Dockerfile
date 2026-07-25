@@ -29,7 +29,8 @@ FROM ubuntu:24.04 AS runtime
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libstdc++6 \
     && rm -rf /var/lib/apt/lists/* \
-    && useradd --system --no-create-home --shell /usr/sbin/nologin collector
+    && useradd --system --no-create-home --shell /usr/sbin/nologin \
+                --uid 10001 --user-group collector
 
 COPY --from=builder --chown=collector:collector /src/build/collector /usr/local/bin/collector
 
